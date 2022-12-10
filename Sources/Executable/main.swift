@@ -1,0 +1,3 @@
+import DocUploader
+
+DocUploader.run()
