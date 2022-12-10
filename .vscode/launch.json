@@ -3,20 +3,20 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug spi-doc-uploader",
-            "program": "${workspaceFolder:spi-doc-uploader}/.build/debug/spi-doc-uploader",
+            "name": "Debug doc-uploader",
+            "program": "${workspaceFolder:spi-doc-uploader}/.build/debug/doc-uploader",
             "args": [],
             "cwd": "${workspaceFolder:spi-doc-uploader}",
-            "preLaunchTask": "swift: Build Debug spi-doc-uploader"
+            "preLaunchTask": "swift: Build Debug doc-uploader"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Release spi-doc-uploader",
-            "program": "${workspaceFolder:spi-doc-uploader}/.build/release/spi-doc-uploader",
+            "name": "Release doc-uploader",
+            "program": "${workspaceFolder:spi-doc-uploader}/.build/release/doc-uploader",
             "args": [],
             "cwd": "${workspaceFolder:spi-doc-uploader}",
-            "preLaunchTask": "swift: Build Release spi-doc-uploader"
+            "preLaunchTask": "swift: Build Release doc-uploader"
         }
     ]
 }
