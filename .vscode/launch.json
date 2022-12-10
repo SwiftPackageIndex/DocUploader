@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug spi-doc-uploader",
+            "program": "${workspaceFolder:spi-doc-uploader}/.build/debug/spi-doc-uploader",
+            "args": [],
+            "cwd": "${workspaceFolder:spi-doc-uploader}",
+            "preLaunchTask": "swift: Build Debug spi-doc-uploader"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Release spi-doc-uploader",
+            "program": "${workspaceFolder:spi-doc-uploader}/.build/release/spi-doc-uploader",
+            "args": [],
+            "cwd": "${workspaceFolder:spi-doc-uploader}",
+            "preLaunchTask": "swift: Build Release spi-doc-uploader"
+        }
+    ]
+}
