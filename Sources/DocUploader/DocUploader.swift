@@ -1,5 +1,9 @@
+import AWSLambdaRuntime
+
 public enum DocUploader {
     public static func run() {
-        print("running DocUploader")
+        Lambda.run { (context, name: String, callback: @escaping (Result<String, Error>) -> Void) in
+            callback(.success("Hello \(name)"))
+        }
     }
 }
