@@ -1,0 +1,23 @@
+
+service: swift-doc-uploader
+
+package:
+    individually: true
+
+provider:
+    name: aws
+    runtime: provided
+    memorySize: 512
+    timeout: 10
+    lambdaHashingVersion: 20201221
+    versionFunctions: false
+    logs:
+        httpApi: false
+
+functions:
+    doc-uploader:
+        handler: doc-uploader
+        events:
+            - httpApi: '*'
+        package:
+            artifact: .lambda/doc-uploader/doc-uploader.zip
