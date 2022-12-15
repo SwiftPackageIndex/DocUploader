@@ -6,6 +6,7 @@ package:
 
 provider:
     name: aws
+    region: us-east-2
     runtime: provided
     memorySize: 512
     timeout: 10
