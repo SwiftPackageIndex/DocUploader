@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+  
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 5
+
+Resources:
+
+  HTTPAPIGateway:
+    Type: AWS::Serverless::HttpApi
+    Properties: {}
+
+  APIFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Architectures:
+        - arm64
+      CodeUri: .build/lambda/APILambda/lambda.zip
+      Handler: "haha"
+      Runtime: provided.al2
+      MemorySize: 256
+      Policies:
+        - AWSLambdaExecute
+      # add other neeeded stuff here if needed
+      Environment:
+        Variables:
+          LOG_LEVEL: info # change log level here
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HTTPAPIGateway
+            Path: /{proxy+}
+            Method: ANY
+  
+  # explicitly create log group to ensure logs are only preserved 14 days (otherways always)
+  APIFunctionLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref APIFunction]]
+      RetentionInDays: 14
