@@ -13,7 +13,7 @@ provider:
     lambdaHashingVersion: 20201221
     versionFunctions: false
     logs:
-        httpApi: false
+        httpApi: true
 
 functions:
     doc-uploader:
