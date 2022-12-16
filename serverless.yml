@@ -1,5 +1,5 @@
 
-service: swift-doc-uploader
+service: doc-uploader
 
 package:
     individually: true
@@ -8,6 +8,7 @@ provider:
     name: aws
     region: us-east-2
     runtime: provided
+    architecture: x86_64
     memorySize: 512
     timeout: 10
     lambdaHashingVersion: 20201221
@@ -16,7 +17,7 @@ provider:
         httpApi: true
 
 functions:
-    doc-uploader:
+    http-endpoint:
         handler: doc-uploader
         events:
             - httpApi: '*'
