@@ -26,3 +26,6 @@ Source: https://stackoverflow.com/a/22849716/1444152
 - https://fabianfett.dev/getting-started-with-swift-aws-lambda-runtime
 - https://www.createwithswift.com/tutorial-getting-started-with-swift-aws-lambda-runtime/
 
+- SAM
+  - https://github.com/aws/serverless-application-model
+  - https://aws.amazon.com/blogs/compute/using-github-actions-to-deploy-serverless-applications/
