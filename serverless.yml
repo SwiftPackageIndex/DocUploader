@@ -13,13 +13,17 @@ provider:
     timeout: 10
     lambdaHashingVersion: 20201221
     versionFunctions: false
-    logs:
-        httpApi: true
 
 functions:
-    http-endpoint:
+    doc-upload:
         handler: doc-uploader
         events:
-            - httpApi: '*'
+            - s3:
+                bucket: spi-dev-docs-inbox
+                event: s3:ObjectCreated:*
+                rules:
+                    - suffix: .zip
+                existing: true
+                forceDeploy: true
         package:
             artifact: .lambda/doc-uploader/doc-uploader.zip
