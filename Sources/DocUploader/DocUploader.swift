@@ -15,8 +15,8 @@ public enum DocUploader {
                 return
             }
             let object = record.s3.object
-            print("bucket: \(record.s3.bucket.name)")
-            print("file: \(object.key)")
+            context.logger.log(level: .info, "bucket: \(record.s3.bucket.name)")
+            context.logger.log(level: .info, "file: \(object.key)")
             callback(.success(Void()))
         }
     }
