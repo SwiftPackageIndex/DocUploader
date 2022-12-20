@@ -17,6 +17,7 @@ provider:
 functions:
     doc-upload:
         handler: doc-uploader
+        ephemeralStorageSize: 2048
         events:
             - s3:
                 bucket: spi-dev-docs-inbox
