@@ -1,8 +1,9 @@
 import Foundation
 
+import SotoS3
+
 
 struct Environment {
-    var environment: (String) -> String?
     var fileManager: FileManager
     var s3Client: S3Client
 }
@@ -10,18 +11,9 @@ struct Environment {
 
 extension Environment {
     static let live: Self = .init(
-        environment: environment(variable:),
         fileManager: LiveFileManager(),
         s3Client: LiveS3Client()
     )
-
-    static func environment(variable: String) -> String? {
-        guard let value = ProcessInfo.processInfo.environment[variable] else {
-//            Logger.log("WARNING: environment variable \(variable) is not set")
-            return nil
-        }
-        return value
-    }
 }
 
 
@@ -47,7 +39,7 @@ protocol S3StoreKey {
 // MARK: - S3 Client
 
 protocol S3Client {
-    func loadFile(from key: S3StoreKey, to path: String) async throws
+    func loadFile(client: AWSClient, from key: S3StoreKey, to path: String) async throws
 }
 
 

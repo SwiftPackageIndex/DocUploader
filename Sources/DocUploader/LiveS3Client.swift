@@ -3,10 +3,9 @@ import SotoS3FileTransfer
 
 
 struct LiveS3Client: S3Client {
-    func loadFile(from key: S3StoreKey, to path: String) async throws {
+    func loadFile(client: AWSClient, from key: S3StoreKey, to path: String) async throws {
         print("copying \(key) to \(path)")
 
-        let client = AWSClient(httpClientProvider: .createNew)
         let s3 = S3(client: client, region: .useast2)
         let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
 
