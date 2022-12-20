@@ -10,12 +10,14 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", .upToNextMajor(from: "0.5.0")),
+        .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.2")
     ],
     targets: [
         .executableTarget(name: "Executable", dependencies: ["DocUploader"]),
         .target(name: "DocUploader", dependencies: [
             .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime"),
-            .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime")
+            .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
+            .product(name: "Zip", package: "Zip")
         ]),
         .testTarget(name: "DocUploaderTests", dependencies: ["DocUploader"]),
     ]

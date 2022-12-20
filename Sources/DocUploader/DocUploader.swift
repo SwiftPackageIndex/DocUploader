@@ -1,5 +1,6 @@
 import AWSLambdaEvents
 import AWSLambdaRuntime
+import Zip
 
 
 struct Error: Swift.Error {
@@ -14,9 +15,13 @@ public enum DocUploader {
                 callback(.failure(Error(message: "no records")))
                 return
             }
+
+            // FIXME: handle multiple zips
+            // FIXME: add a report back stage
+
             let object = record.s3.object
-            context.logger.log(level: .info, "bucket: \(record.s3.bucket.name)")
-            context.logger.log(level: .info, "file: \(object.key)")
+            context.logger.log(level: .info, "file: \(record.s3.bucket.name)/\(object.key)")
+
             callback(.success(Void()))
         }
     }
