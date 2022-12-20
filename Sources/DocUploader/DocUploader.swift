@@ -5,11 +5,6 @@ import AWSLambdaRuntime
 import Zip
 
 
-struct Error: Swift.Error {
-    var message: String
-}
-
-
 public struct DocUploader: SimpleLambdaHandler {
     public func handle(_ event: S3Event, context: LambdaContext) async throws {
         guard let record = event.records.first else {
@@ -26,8 +21,7 @@ public struct DocUploader: SimpleLambdaHandler {
         let outputPath = "/tmp"
         try await Current.s3Client.loadFile(from: S3Key(bucketName: bucketName,
                                                         objectKey: objectKey),
-                                            to: outputPath,
-                                            credentials: .init(keyId: "", secret: ""))
+                                            to: outputPath)
     }
 
     public init() { }

@@ -43,16 +43,11 @@ protocol S3StoreKey {
     var url: String { get }
 }
 
-struct S3Credentials {
-    var keyId: String
-    var secret: String
-}
-
 
 // MARK: - S3 Client
 
 protocol S3Client {
-    func loadFile(from key: S3StoreKey, to path: String, credentials: S3Credentials) async throws
+    func loadFile(from key: S3StoreKey, to path: String) async throws
 }
 
 
