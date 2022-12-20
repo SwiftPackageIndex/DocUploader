@@ -57,6 +57,7 @@ public struct DocUploader: LambdaHandler {
 
         let outputPath = "/tmp"
         try await Current.s3Client.loadFile(client: awsClient,
+                                            logger: context.logger,
                                             from: S3Key(bucketName: bucketName,
                                                         objectKey: objectKey),
                                             to: outputPath)

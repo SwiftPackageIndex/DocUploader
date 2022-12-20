@@ -39,7 +39,7 @@ protocol S3StoreKey {
 // MARK: - S3 Client
 
 protocol S3Client {
-    func loadFile(client: AWSClient, from key: S3StoreKey, to path: String) async throws
+    func loadFile(client: AWSClient, logger: Logger, from key: S3StoreKey, to path: String) async throws
 }
 
 

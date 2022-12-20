@@ -3,8 +3,8 @@ import SotoS3FileTransfer
 
 
 struct LiveS3Client: S3Client {
-    func loadFile(client: AWSClient, from key: S3StoreKey, to path: String) async throws {
-        print("copying \(key) to \(path)")
+    func loadFile(client: AWSClient, logger: Logger, from key: S3StoreKey, to path: String) async throws {
+        logger.info("Copying \(key) to \(path) ...")
 
         let s3 = S3(client: client, region: .useast2)
         let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
@@ -13,6 +13,7 @@ struct LiveS3Client: S3Client {
             throw Error(message: "Invalid key: \(key)")
         }
         try await s3FileTransfer.copy(from: file, to: path)
+        logger.info("Completed copying \(key) to \(path)")
     }
 }
 
