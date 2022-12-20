@@ -14,6 +14,7 @@ let package = Package(
     targets: [
         .executableTarget(name: "Executable", dependencies: ["DocUploader"]),
         .target(name: "DocUploader", dependencies: [
+            .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-runtime"),
             .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime")
         ]),
         .testTarget(name: "DocUploaderTests", dependencies: ["DocUploader"]),
