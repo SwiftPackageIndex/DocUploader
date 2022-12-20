@@ -1,3 +1,3 @@
 import DocUploader
 
-DocUploader.run()
+DocUploader.main()
