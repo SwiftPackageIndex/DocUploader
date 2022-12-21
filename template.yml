@@ -8,36 +8,45 @@ Globals:
 
 Resources:
 
-  HTTPAPIGateway:
-    Type: AWS::Serverless::HttpApi
-    Properties: {}
-
-  APIFunction:
+  UploadFunction:
     Type: AWS::Serverless::Function
     Properties:
       Architectures:
+        # - x86_64
         - arm64
-      CodeUri: .build/lambda/APILambda/lambda.zip
+      CodeUri: .build/lambda/doc-uploader/lambda.zip
       Handler: "haha"
       Runtime: provided.al2
       MemorySize: 256
       Policies:
         - AWSLambdaExecute
+        - Version: '2012-10-17' # Policy Document
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:GetObjectACL
+              Resource: 'arn:aws:s3:::spi-dev-docs-inbox/*'
+
       # add other neeeded stuff here if needed
       Environment:
         Variables:
           LOG_LEVEL: info # change log level here
       Events:
-        Api:
-          Type: HttpApi
+        InboxEvent:
+          Type: S3
           Properties:
-            ApiId: !Ref HTTPAPIGateway
-            Path: /{proxy+}
-            Method: ANY
+            Bucket: !Ref InboxBucket
+            Events: s3:ObjectCreated:*
+
+  InboxBucket:
+    Type: "AWS::S3::Bucket"
+    Properties: 
+      BucketName: spi-dev-docs-inbox
   
   # explicitly create log group to ensure logs are only preserved 14 days (otherways always)
-  APIFunctionLogGroup:
+  UploadFunctionLogGroup:
     Type: "AWS::Logs::LogGroup"
     Properties:
-      LogGroupName: !Join ["", ["/aws/lambda/", !Ref APIFunction]]
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref UploadFunction]]
       RetentionInDays: 14
