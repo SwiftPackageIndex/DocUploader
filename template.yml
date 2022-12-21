@@ -18,6 +18,8 @@ Resources:
       Handler: "haha"
       Runtime: provided.al2
       MemorySize: 256
+      EphemeralStorage:
+        Size: 2048
       Policies:
         - AWSLambdaExecute
         - Version: '2012-10-17' # Policy Document
