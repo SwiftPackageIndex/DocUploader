@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  Arch:
+    Type: String
+    Default: x86_64
+    AllowedValues:
+      - arm64
+      - x86_64
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 5
+
+Resources:
+
+  UploadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Architectures:
+        - !Ref Arch
+      CodeUri: ./.lambda/doc-uploader/lambda.zip
+      Handler: "haha"
+      Runtime: provided.al2
+      MemorySize: 256
+      EphemeralStorage:
+        Size: 2048
+      Policies:
+        - AWSLambdaExecute
+        - Version: '2012-10-17' # Policy Document
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:GetObjectACL
+              Resource: 'arn:aws:s3:::spi-dev-docs-inbox/*'
+
+      # add other neeeded stuff here if needed
+      Environment:
+        Variables:
+          LOG_LEVEL: info # change log level here
+      Events:
+        InboxEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref InboxBucket
+            Events: s3:ObjectCreated:*
+
+  InboxBucket:
+    Type: "AWS::S3::Bucket"
+    Properties: 
+      BucketName: spi-dev-docs-inbox
+  
+  # explicitly create log group to ensure logs are only preserved 14 days (otherways always)
+  UploadFunctionLogGroup:
+    Type: "AWS::Logs::LogGroup"
+    Properties:
+      LogGroupName: !Join ["", ["/aws/lambda/", !Ref UploadFunction]]
+      RetentionInDays: 14

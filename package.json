@@ -1,6 +1,0 @@
-{
-    "name": "doc-uploader",
-    "dependencies": {
-        "serverless": "^3.25.1"
-    }
-}
