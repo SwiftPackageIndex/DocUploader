@@ -1,0 +1,10 @@
+version=0.1
+
+[default.deploy.parameters]
+stack_name = "DocUploaderLambda"
+s3_bucket = "spi-deployment-artifacts"
+s3_prefix = "doc-uploader"
+region = "us-east-2"
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = false
+fail_on_empty_changeset = false

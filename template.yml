@@ -1,6 +1,14 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-  
+
+Parameters:
+  Arch:
+    Type: String
+    Default: x86_64
+    AllowedValues:
+      - arm64
+      - x86_64
+
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
@@ -12,8 +20,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Architectures:
-        - x86_64
-        # - arm64
+        - !Ref Arch
       CodeUri: .build/lambda/doc-uploader/lambda.zip
       Handler: "haha"
       Runtime: provided.al2
