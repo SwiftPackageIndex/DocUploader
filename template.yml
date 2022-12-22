@@ -12,8 +12,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Architectures:
-        # - x86_64
-        - arm64
+        - x86_64
+        # - arm64
       CodeUri: .build/lambda/doc-uploader/lambda.zip
       Handler: "haha"
       Runtime: provided.al2
