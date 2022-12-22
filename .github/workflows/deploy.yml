@@ -12,28 +12,22 @@ jobs:
     container: swift:5.7-amazonlinux2
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Use Node.js
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      
+      - uses: actions/setup-python@v3
         with:
-          node-version: 14
-          cache: npm
-
-      - name: Install
-        run: |
-          yum -y install zip
-          npm install
+          python-version: "3.8"
+      
+      - uses: aws-actions/setup-sam@v2
+      
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
 
       - name: Build
-        run: swift build -c release
-
-      - name: Package
-        run: |
-          ./scripts/package.sh doc-uploader
+        run: make build
 
       - name: Deploy
-        run: npx serverless deploy --stage dev
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: make deploy 
