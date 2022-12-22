@@ -21,7 +21,7 @@ Resources:
     Properties:
       Architectures:
         - !Ref Arch
-      CodeUri: .build/lambda/doc-uploader/lambda.zip
+      CodeUri: ./lambda/doc-uploader/lambda.zip
       Handler: "haha"
       Runtime: provided.al2
       MemorySize: 256
