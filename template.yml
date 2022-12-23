@@ -39,7 +39,8 @@ Resources:
               Resource: 'arn:aws:s3:::spi-dev-docs-inbox/*'
             - Effect: Allow
               Action:
-                - AmazonS3FullAccess
+                - s3:*
+                - s3-object-lambda:*
               Resource:
                 - 'arn:aws:s3:::spi-scratch/*'
                 - 'arn:aws:s3:::spi-scratch'
