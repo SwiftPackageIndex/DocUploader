@@ -44,6 +44,8 @@ public struct DocUploader: LambdaHandler {
     }
 
     public func handle(_ event: S3Event, context: LambdaContext) async throws {
+        context.logger.info("Lambda version: \(LambdaVersion)")
+
         guard let record = event.records.first else {
             throw Error(message: "no records")
         }
