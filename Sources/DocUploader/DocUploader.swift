@@ -64,13 +64,26 @@ public struct DocUploader: LambdaHandler {
                                                         objectKey: objectKey),
                                             to: outputPath)
 
-        context.logger.info("Contents of \(outputPath)")
-        for dir in try Foundation.FileManager.default.contentsOfDirectory(atPath: outputPath) {
-            context.logger.info("- \(dir)")
-        }
-
-
-//        Zip.unzipFile(URL(filePath: <#T##String#>), destination: <#T##URL#>, overwrite: <#T##Bool#>, password: <#T##String?#>)
+        let zipFileName = "\(outputPath)/\(objectKey)"
+        try Self.unzipFile(logger: context.logger, filename: zipFileName, outputPath: outputPath)
     }
+}
 
+
+extension DocUploader {
+    static func unzipFile(logger: Logger, filename: String, outputPath: String) throws {
+        logger.info("Unzipping \(filename)")
+        var fileCount = 0
+        try Zip.unzipFile(URL(fileURLWithPath: filename),
+                          destination: URL(fileURLWithPath: outputPath),
+                          overwrite: true,
+                          password: nil,
+                          fileOutputHandler: { unzippedFile in
+            defer { fileCount += 1 }
+            if fileCount % 100 == 0 {
+                logger.info("- \(unzippedFile)")
+            }
+        })
+        logger.info("✅ Completed unzipping \(filename)")
+    }
 }

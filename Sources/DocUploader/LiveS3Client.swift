@@ -13,7 +13,7 @@ struct LiveS3Client: S3Client {
             throw Error(message: "Invalid key: \(key)")
         }
         try await s3FileTransfer.copy(from: file, to: path)
-        logger.info("Completed copying \(key) to \(path)")
+        logger.info("✅ Completed copying \(key) to \(path)")
     }
 }
 
