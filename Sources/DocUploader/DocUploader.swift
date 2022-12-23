@@ -66,17 +66,16 @@ public struct DocUploader: LambdaHandler {
                                             to: outputPath)
 
         let zipFileName = "\(outputPath)/\(objectKey)"
-        let topLevelDir = try Self.unzipFile(logger: logger,
-                                             filename: zipFileName,
-                                             outputPath: outputPath)
+        let syncPath = try Self.unzipFile(logger: logger,
+                                          filename: zipFileName,
+                                          outputPath: outputPath)
 
-        let syncPath = "\(outputPath)"
         let basename = objectKey.droppingSuffix(".zip")
         // FIXME: pass in actual bucket
         let targetKey = S3Key(bucketName: "spi-scratch", objectKey: basename)
         try await Current.s3Client.sync(client: awsClient,
                                         logger: logger,
-                                        from: topLevelDir,
+                                        from: syncPath,
                                         to: targetKey)
 
         try await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
