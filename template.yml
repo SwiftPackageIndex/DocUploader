@@ -43,7 +43,6 @@ Resources:
               Resource:
                 - 'arn:aws:s3:::spi-scratch/*'
                 - 'arn:aws:s3:::spi-scratch'
-        # - AmazonS3FullAccess
 
       # add other neeeded stuff here if needed
       Environment:
@@ -60,6 +59,11 @@ Resources:
     Type: "AWS::S3::Bucket"
     Properties: 
       BucketName: spi-dev-docs-inbox
+      LifecycleConfiguration:
+        Rules:
+          - Id: InboxExpirationRule
+            Status: Enabled
+            ExpirationInDays: 1
   
   # explicitly create log group to ensure logs are only preserved 14 days (otherways always)
   UploadFunctionLogGroup:
