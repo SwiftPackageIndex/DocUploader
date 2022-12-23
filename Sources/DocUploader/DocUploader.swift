@@ -55,17 +55,21 @@ public struct DocUploader: LambdaHandler {
 
         let bucketName = record.s3.bucket.name
         let objectKey = record.s3.object.key
-        context.logger.info("file: \(bucketName)/\(objectKey)")
+        let s3Key = S3Key(bucketName: bucketName, objectKey: objectKey)
+        context.logger.info("file: \(s3Key.url)")
 
         let outputPath = "/tmp"
         try await Current.s3Client.loadFile(client: awsClient,
                                             logger: context.logger,
-                                            from: S3Key(bucketName: bucketName,
-                                                        objectKey: objectKey),
+                                            from: s3Key,
                                             to: outputPath)
 
         let zipFileName = "\(outputPath)/\(objectKey)"
         try Self.unzipFile(logger: context.logger, filename: zipFileName, outputPath: outputPath)
+
+        // TODO: sync data to S3
+
+        try await Current.s3Client.deleteFile(client: awsClient, logger: context.logger, key: s3Key)
     }
 }
 
