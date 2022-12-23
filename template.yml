@@ -39,11 +39,7 @@ Resources:
               Resource: 'arn:aws:s3:::spi-dev-docs-inbox/*'
             - Effect: Allow
               Action:
-                - s3:DeleteObject
-                - s3:GetObject
-                - s3:GetObjectACL
-                - s3:ListObjects
-                - s3:PutObject
+                - AmazonS3FullAccess
               Resource:
                 - 'arn:aws:s3:::spi-scratch/*'
                 - 'arn:aws:s3:::spi-scratch'
