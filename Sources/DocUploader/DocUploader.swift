@@ -51,34 +51,41 @@ public struct DocUploader: LambdaHandler {
             throw Error(message: "no records")
         }
 
-        // FIXME: handle multiple zips
-        // FIXME: add a report back stage
-
         let bucketName = record.s3.bucket.name
         let objectKey = record.s3.object.key
         let s3Key = S3Key(bucketName: bucketName, objectKey: objectKey)
         logger.info("file: \(s3Key.url)")
 
-        let outputPath = "/tmp"
-        try await Current.s3Client.loadFile(client: awsClient,
+        do {
+            // FIXME: handle multiple zips
+            // FIXME: add a report back stage
+
+            let outputPath = "/tmp"
+            try await Current.s3Client.loadFile(client: awsClient,
+                                                logger: logger,
+                                                from: s3Key,
+                                                to: outputPath)
+
+            let zipFileName = "\(outputPath)/\(objectKey)"
+            let syncPath = try Self.unzipFile(logger: logger,
+                                              filename: zipFileName,
+                                              outputPath: outputPath)
+
+            let basename = objectKey.droppingSuffix(".zip")
+            // FIXME: pass in actual bucket
+            let targetKey = S3Key(bucketName: "spi-scratch", objectKey: basename)
+            try await Current.s3Client.sync(client: awsClient,
                                             logger: logger,
-                                            from: s3Key,
-                                            to: outputPath)
+                                            from: syncPath,
+                                            to: targetKey)
 
-        let zipFileName = "\(outputPath)/\(objectKey)"
-        let syncPath = try Self.unzipFile(logger: logger,
-                                          filename: zipFileName,
-                                          outputPath: outputPath)
+            try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
+        } catch {
+            // Try and clean up the input file in case we hit an error
+            try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
 
-        let basename = objectKey.droppingSuffix(".zip")
-        // FIXME: pass in actual bucket
-        let targetKey = S3Key(bucketName: "spi-scratch", objectKey: basename)
-        try await Current.s3Client.sync(client: awsClient,
-                                        logger: logger,
-                                        from: syncPath,
-                                        to: targetKey)
-
-        try await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
+            throw error
+        }
     }
 }
 
