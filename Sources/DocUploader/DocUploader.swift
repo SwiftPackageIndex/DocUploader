@@ -53,7 +53,7 @@ public struct DocUploader: LambdaHandler {
 
         let bucketName = record.s3.bucket.name
         let objectKey = record.s3.object.key
-        context.logger.log(level: .info, "file: \(bucketName)/\(objectKey)")
+        context.logger.info("file: \(bucketName)/\(objectKey)")
 
         let outputPath = "/tmp"
         try await Current.s3Client.loadFile(client: awsClient,
@@ -61,6 +61,14 @@ public struct DocUploader: LambdaHandler {
                                             from: S3Key(bucketName: bucketName,
                                                         objectKey: objectKey),
                                             to: outputPath)
+
+        context.logger.info("Contents of \(outputPath)")
+        for dir in try Foundation.FileManager.default.contentsOfDirectory(atPath: outputPath) {
+            context.logger.info("- \(dir)")
+        }
+
+
+//        Zip.unzipFile(URL(filePath: <#T##String#>), destination: <#T##URL#>, overwrite: <#T##Bool#>, password: <#T##String?#>)
     }
 
 }
