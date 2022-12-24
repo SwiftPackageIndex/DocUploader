@@ -36,7 +36,7 @@ Resources:
                 - s3:GetObject
                 - s3:GetObjectACL
                 - s3:DeleteObject
-              Resource: 'arn:aws:s3:::spi-dev-docs-inbox/*'
+              Resource: 'arn:aws:s3:::spi-scratch-inbox/*'
             - Effect: Allow
               Action:
                 - s3:*
@@ -58,7 +58,7 @@ Resources:
   InboxBucket:
     Type: "AWS::S3::Bucket"
     Properties: 
-      BucketName: spi-dev-docs-inbox
+      BucketName: spi-scratch-inbox
       LifecycleConfiguration:
         Rules:
           - Id: InboxExpirationRule
