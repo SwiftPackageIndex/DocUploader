@@ -51,6 +51,8 @@ public struct DocUploader: LambdaHandler {
             throw Error(message: "no records")
         }
 
+        var errors = [Swift.Error]()
+
         for record in event.records {
             let bucketName = record.s3.bucket.name
             let objectKey = record.s3.object.key
@@ -58,33 +60,43 @@ public struct DocUploader: LambdaHandler {
             logger.info("file: \(s3Key.url)")
 
             do {
-                // FIXME: add a report back stage
+                try await run {
+                    // FIXME: add a report back stage
 
-                let outputPath = "/tmp"
-                try await Current.s3Client.loadFile(client: awsClient,
+                    let outputPath = "/tmp"
+                    try await Current.s3Client.loadFile(client: awsClient,
+                                                        logger: logger,
+                                                        from: s3Key,
+                                                        to: outputPath)
+
+                    let zipFileName = "\(outputPath)/\(objectKey)"
+                    let syncPath = try Self.unzipFile(logger: logger,
+                                                      filename: zipFileName,
+                                                      outputPath: outputPath)
+
+                    let basename = objectKey.droppingSuffix(".zip")
+                    // FIXME: pass in actual bucket
+                    let targetKey = S3Key(bucketName: "spi-scratch", objectKey: basename)
+                    try await Current.s3Client.sync(client: awsClient,
                                                     logger: logger,
-                                                    from: s3Key,
-                                                    to: outputPath)
-
-                let zipFileName = "\(outputPath)/\(objectKey)"
-                let syncPath = try Self.unzipFile(logger: logger,
-                                                  filename: zipFileName,
-                                                  outputPath: outputPath)
-
-                let basename = objectKey.droppingSuffix(".zip")
-                // FIXME: pass in actual bucket
-                let targetKey = S3Key(bucketName: "spi-scratch", objectKey: basename)
-                try await Current.s3Client.sync(client: awsClient,
-                                                logger: logger,
-                                                from: syncPath,
-                                                to: targetKey)
-
-                try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
+                                                    from: syncPath,
+                                                    to: targetKey)
+                } defer: {
+                    try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
+                }
             } catch {
-                // Try and clean up the input file in case we hit an error
-                try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
+                // Track any errors but continue on to attempt to process all events.
+                logger.error("\(error)")
+                errors.append(error)
+            }
+        }
 
-                throw error
+        // Raise any errors we encountered.
+        guard errors.isEmpty else {
+            if errors.count == 1 {
+                throw errors.first!
+            } else {
+                throw Error(message: "Encountered \(errors.count) errors (see logs for details)")
             }
         }
     }
@@ -125,5 +137,17 @@ private extension String {
         } else {
             return self
         }
+    }
+}
+
+
+func run(_ operation: () async throws -> Void,
+         defer deferredOperation: () async -> Void) async throws {
+    do {
+        try await operation()
+        await deferredOperation()
+    } catch {
+        await deferredOperation()
+        throw error
     }
 }
