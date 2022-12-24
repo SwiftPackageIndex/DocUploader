@@ -58,6 +58,7 @@ public struct DocUploader: LambdaHandler {
             let objectKey = record.s3.object.key
             let s3Key = S3Key(bucketName: bucketName, objectKey: objectKey)
             logger.info("file: \(s3Key.url)")
+            logger.info("record: \(record)")
 
             do {
                 try await run {
