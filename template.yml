@@ -35,7 +35,14 @@ Resources:
               Action:
                 - s3:GetObject
                 - s3:GetObjectACL
-              Resource: 'arn:aws:s3:::spi-dev-docs-inbox/*'
+                - s3:DeleteObject
+              Resource: 'arn:aws:s3:::spi-scratch-inbox/*'
+            - Effect: Allow
+              Action:
+                - s3:*
+              Resource:
+                - 'arn:aws:s3:::spi-scratch/*'
+                - 'arn:aws:s3:::spi-scratch'
 
       # add other neeeded stuff here if needed
       Environment:
@@ -51,7 +58,12 @@ Resources:
   InboxBucket:
     Type: "AWS::S3::Bucket"
     Properties: 
-      BucketName: spi-dev-docs-inbox
+      BucketName: spi-scratch-inbox
+      LifecycleConfiguration:
+        Rules:
+          - Id: InboxExpirationRule
+            Status: Enabled
+            ExpirationInDays: 1
   
   # explicitly create log group to ensure logs are only preserved 14 days (otherways always)
   UploadFunctionLogGroup:
