@@ -51,6 +51,12 @@ public struct DocUploader: LambdaHandler {
             throw Error(message: "no records")
         }
 
+        if event.records.count > 1 {
+            logger.warning("Number of records: \(event.records)")
+        } else {
+            logger.info("Number of records: \(event.records)")
+        }
+
         var errors = [Swift.Error]()
 
         for record in event.records {
