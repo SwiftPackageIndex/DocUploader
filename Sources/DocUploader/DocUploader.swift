@@ -89,7 +89,7 @@ public struct DocUploader: LambdaHandler {
                                                     from: syncPath,
                                                     to: targetKey)
                 } defer: {
-                    try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
+                    // try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
                 }
             } catch {
                 // Track any errors but continue on to attempt to process all events.
