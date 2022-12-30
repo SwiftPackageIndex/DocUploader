@@ -3,8 +3,8 @@ import Foundation
 import AsyncHTTPClient
 import AWSLambdaEvents
 import AWSLambdaRuntime
+import DocUploaderBundle
 import SotoS3
-import Zip
 
 
 public struct DocUploader: LambdaHandler {
@@ -71,23 +71,33 @@ public struct DocUploader: LambdaHandler {
                     // FIXME: add a report back stage
 
                     let outputPath = "/tmp"
-                    try await Current.s3Client.loadFile(client: awsClient,
+                    do {
+                        logger.info("Loading \(s3Key.url)")
+                        try await Current.s3Client.loadFile(client: awsClient,
+                                                            logger: logger,
+                                                            from: s3Key,
+                                                            to: outputPath)
+                        logger.info("✅ Completed loding \(s3Key.url)")
+                    }
+
+                    let metadata: DocUploadBundle.Metadata
+                    do {
+                        let zipFileName = "\(outputPath)/\(objectKey)"
+                        logger.info("Unzipping \(zipFileName)")
+                        metadata = try DocUploadBundle.unzip(bundle: zipFileName,
+                                                                 outputPath: outputPath)
+                        logger.info("✅ Completed unzipping \(zipFileName)")
+                    }
+
+                    do {
+                        let syncPath = "\(outputPath)/\(metadata.sourcePath)"
+                        logger.info("Syncing \(syncPath)...")
+                        try await Current.s3Client.sync(client: awsClient,
                                                         logger: logger,
-                                                        from: s3Key,
-                                                        to: outputPath)
-
-                    let zipFileName = "\(outputPath)/\(objectKey)"
-                    let syncPath = try Self.unzipFile(logger: logger,
-                                                      filename: zipFileName,
-                                                      outputPath: outputPath)
-
-                    let basename = objectKey.droppingSuffix(".zip")
-                    // FIXME: pass in actual bucket
-                    let targetKey = S3Key(bucketName: "spi-scratch", objectKey: basename)
-                    try await Current.s3Client.sync(client: awsClient,
-                                                    logger: logger,
-                                                    from: syncPath,
-                                                    to: targetKey)
+                                                        from: syncPath,
+                                                        to: metadata.targetFolder.s3Key)
+                        logger.info("✅ Completed syncing \(syncPath)")
+                    }
                 } defer: {
                     // try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
                 }
@@ -110,30 +120,8 @@ public struct DocUploader: LambdaHandler {
 }
 
 
-extension DocUploader {
-    static func unzipFile(logger: Logger, filename: String, outputPath: String) throws -> String {
-        logger.info("Unzipping \(filename)")
-
-        var fileCount = 0
-        var topLevelDir = ""
-        try Zip.unzipFile(URL(fileURLWithPath: filename),
-                          destination: URL(fileURLWithPath: outputPath),
-                          overwrite: true,
-                          password: nil,
-                          fileOutputHandler: { unzippedFile in
-            defer { fileCount += 1 }
-            if fileCount == 0 {
-                topLevelDir = unzippedFile.absoluteString
-            }
-            if fileCount % 100 == 0 {
-                logger.info("- \(unzippedFile)")
-            }
-        })
-
-        logger.info("✅ Completed unzipping \(filename)")
-
-        return topLevelDir
-    }
+private extension DocUploadBundle.S3Folder {
+    var s3Key: S3Key { .init(bucketName: bucket, objectKey: path) }
 }
 
 

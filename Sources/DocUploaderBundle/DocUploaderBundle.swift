@@ -3,11 +3,11 @@ import Foundation
 import Zip
 
 
-struct DocUploadBundle {
-    struct S3Folder: Codable, Equatable {
-        var bucket: String
-        var path: String
-//        var url: String { "s3://\(bucket)/\(path)".lowercased() }
+public struct DocUploadBundle {
+
+    public struct S3Folder: Codable, Equatable {
+        public var bucket: String
+        public var path: String
     }
 
     struct Repository {
@@ -15,11 +15,11 @@ struct DocUploadBundle {
         var name: String
     }
 
-    struct Metadata: Codable, Equatable {
+    public struct Metadata: Codable, Equatable {
         /// Basename of the doc set source directory after unzipping. The value will be the source code revision, e.g. "1.2.3" or "main".
-        var sourcePath: String
+        public var sourcePath: String
         /// Target folder where the doc set will be synced to in S3.
-        var targetFolder: S3Folder
+        public var targetFolder: S3Folder
     }
 
     var sourcePath: String
@@ -27,7 +27,7 @@ struct DocUploadBundle {
     var repository: Repository
     var reference: String
 
-    var s3Folder: S3Folder {
+    public var s3Folder: S3Folder {
         .init(bucket: bucket,
               path: "\(repository.owner)/\(repository.name)/\(reference)".lowercased())
     }
@@ -62,4 +62,16 @@ struct DocUploadBundle {
 
             return archiveURL.path
     }
+
+    public static func unzip(bundle: String, outputPath: String, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws -> Metadata {
+        try Zip.unzipFile(URL(fileURLWithPath: bundle),
+                          destination: URL(fileURLWithPath: outputPath),
+                          overwrite: true,
+                          password: nil,
+                          fileOutputHandler: fileOutputHandler)
+        let metadataURL = URL(fileURLWithPath: "\(outputPath)/metadata.json")
+        let data = try Data(contentsOf: metadataURL)
+        return try JSONDecoder().decode(Metadata.self, from: data)
+    }
+
 }
