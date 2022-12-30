@@ -7,7 +7,8 @@ let package = Package(
     name: "spi-doc-uploader",
     platforms: [.macOS(.v12)],
     products: [
-        .executable(name: "doc-uploader", targets: ["Executable"])
+        .executable(name: "doc-uploader", targets: ["Executable"]),
+        .library(name: "DocUploaderBundle", targets: ["DocUploaderBundle"])
     ],
     dependencies: [
         .package(url: "https://github.com/swift-server/swift-aws-lambda-events.git", branch: "main"),
@@ -23,6 +24,7 @@ let package = Package(
             .product(name: "SotoS3FileTransfer", package: "soto-s3-file-transfer"),
             .product(name: "Zip", package: "Zip")
         ]),
+        .target(name: "DocUploaderBundle"),
         .testTarget(name: "DocUploaderTests", dependencies: ["DocUploader"]),
     ]
 )
