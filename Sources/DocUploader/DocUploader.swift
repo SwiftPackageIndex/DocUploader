@@ -72,12 +72,12 @@ public struct DocUploader: LambdaHandler {
 
                     let outputPath = "/tmp"
                     do {
-                        logger.info("Loading \(s3Key.url)")
+                        logger.info("Copying \(s3Key.url) to \(outputPath)...")
                         try await Current.s3Client.loadFile(client: awsClient,
                                                             logger: logger,
                                                             from: s3Key,
                                                             to: outputPath)
-                        logger.info("✅ Completed loding \(s3Key.url)")
+                        logger.info("✅ Completed copying \(s3Key.url)")
                     }
 
                     let metadata: DocUploadBundle.Metadata
@@ -91,7 +91,7 @@ public struct DocUploader: LambdaHandler {
 
                     do {
                         let syncPath = "\(outputPath)/\(metadata.sourcePath)"
-                        logger.info("Syncing \(syncPath)...")
+                        logger.info("Syncing \(syncPath) to \(metadata.targetFolder.s3Key)...")
                         try await Current.s3Client.sync(client: awsClient,
                                                         logger: logger,
                                                         from: syncPath,

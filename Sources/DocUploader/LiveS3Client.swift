@@ -14,8 +14,6 @@ struct LiveS3Client: S3Client {
     }
 
     func loadFile(client: AWSClient, logger: Logger, from key: S3StoreKey, to path: String) async throws {
-        logger.info("Copying \(key.url) to \(path) ...")
-
         let s3 = S3(client: client, region: .useast2)
         let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
 
@@ -23,12 +21,9 @@ struct LiveS3Client: S3Client {
             throw Error(message: "Invalid key: \(key)")
         }
         try await s3FileTransfer.copy(from: file, to: path)
-        logger.info("✅ Completed copying \(key.url) to \(path)")
     }
 
     func sync(client: AWSClient, logger: Logger, from folder: String, to key: S3StoreKey) async throws {
-        logger.info("Syncing \(folder) to \(key) ...")
-
         let s3 = S3(client: client, region: .useast2)
         let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
 
@@ -43,8 +38,6 @@ struct LiveS3Client: S3Client {
                 nextProgressTick += 0.1
             }
         }
-
-        logger.info("✅ Completed syncing \(folder) to \(s3Folder)")
     }
 }
 
