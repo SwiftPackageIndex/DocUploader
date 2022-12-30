@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "spi-doc-uploader",
-    platforms: [.macOS(.v11)],
+    platforms: [.macOS(.v12)],
     products: [
         .executable(name: "doc-uploader", targets: ["Executable"]),
         .library(name: "DocUploaderBundle", targets: ["DocUploaderBundle"])
