@@ -10,9 +10,14 @@ public struct DocUploadBundle {
         public var path: String
     }
 
-    struct Repository {
+    public struct Repository {
         var owner: String
         var name: String
+
+        public init(owner: String, name: String) {
+            self.owner = owner
+            self.name = name
+        }
     }
 
     public struct Metadata: Codable, Equatable {
@@ -41,14 +46,14 @@ public struct DocUploadBundle {
         "\(repository.owner)-\(repository.name)-\(reference).zip".lowercased()
     }
 
-    init(sourcePath: String, bucket: String, repository: Repository, reference: String) {
+    public init(sourcePath: String, bucket: String, repository: Repository, reference: String) {
         self.sourcePath = sourcePath
         self.bucket = bucket
         self.repository = repository
         self.reference = reference
     }
 
-    func zip(to workDir: String) throws -> String {
+    public func zip(to workDir: String) throws -> String {
             let archiveURL = URL(fileURLWithPath: "\(workDir)/\(archiveName)")
             let metadataURL = URL(fileURLWithPath: "\(workDir)/metadata.json")
             try JSONEncoder().encode(metadata).write(to: metadataURL)
