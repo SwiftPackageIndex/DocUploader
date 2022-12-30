@@ -3,7 +3,6 @@ import Foundation
 import Zip
 
 
-// TODO: move to its own module in DocUploader
 struct DocUploadBundle {
     struct S3Folder: Codable, Equatable {
         var bucket: String
