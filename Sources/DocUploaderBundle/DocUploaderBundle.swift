@@ -8,6 +8,11 @@ public struct DocUploadBundle {
     public struct S3Folder: Codable, Equatable {
         public var bucket: String
         public var path: String
+
+        public init(bucket: String, path: String) {
+            self.bucket = bucket
+            self.path = path
+        }
     }
 
     public struct Repository {
