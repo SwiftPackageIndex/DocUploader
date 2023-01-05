@@ -11,8 +11,11 @@ build: version
 	scripts/build.sh doc-uploader
 	scripts/package.sh doc-uploader
     
-deploy: build
-	sam deploy
+deploy-prod: build
+	sam deploy \
+		--stack-name DocUploaderLambda-Prod
 
-deploy-arm64: build
-	sam deploy --parameter-overrides Arch=arm64
+deploy-test: build
+	sam deploy \
+		--stack-name DocUploaderLambda-Test \
+		--parameter-overrides Arch=arm64
