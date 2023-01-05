@@ -39,7 +39,6 @@ Resources:
 
   UploadFunction:
     Type: AWS::Serverless::Function
-    DependsOn: UploadFunctionLogGroup
     Properties:
       Architectures:
         - !FindInMap [ EnvMapping, !Ref Env, Arch ]
