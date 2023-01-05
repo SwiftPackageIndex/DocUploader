@@ -13,9 +13,10 @@ build: version
     
 deploy-prod: build
 	sam deploy \
-		--stack-name DocUploaderLambda-Prod
+		--stack-name DocUploaderLambda-Prod \
+		--parameter-overrides Env=prod
 
 deploy-test: build
 	sam deploy \
 		--stack-name DocUploaderLambda-Test \
-		--parameter-overrides Arch=arm64
+		--parameter-overrides Env=test

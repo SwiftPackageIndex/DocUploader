@@ -8,6 +8,29 @@ Parameters:
     AllowedValues:
       - arm64
       - x86_64
+  InboxBucket:
+    Type: 'AWS::S3::Bucket::Name'
+
+  Env:
+    Type: String
+    AllowedValues:
+      - test
+      - prod
+
+Mappings:
+  EnvMapping:
+    test:
+      Arch: arm64
+      InboxBucket: spi-scratch-inbox
+      # We need to specify two output buckets in prod, so we hack around this by specifying scratch
+      # twice here.
+      OutBucket1: spi-scratch
+      OutBucket2: spi-scratch
+    prod:
+      InboxBucket: spi-docs-inbox
+      OutBucket1: spi-dev-docs
+      OutBucket2: spi-prod-docs
+
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
@@ -36,7 +59,7 @@ Resources:
                 - s3:GetObject
                 - s3:GetObjectACL
                 - s3:DeleteObject
-              Resource: 'arn:aws:s3:::spi-scratch-inbox/*'
+              Resource: !Sub 'arn:aws:s3:::${InboxBucket}/*'
             - Effect: Allow
               Action:
                 - s3:*
@@ -52,13 +75,14 @@ Resources:
         InboxEvent:
           Type: S3
           Properties:
-            Bucket: !Ref InboxBucket
+            Bucket: !Ref InboxBucketResource
             Events: s3:ObjectCreated:*
 
-  InboxBucket:
+  InboxBucketResource:
     Type: "AWS::S3::Bucket"
     Properties: 
-      BucketName: spi-scratch-inbox
+      BucketName: !Ref InboxBucket  # <- set this from a parameter
+                                    # Fails: Parameters: [InboxBucket] must have values
       LifecycleConfiguration:
         Rules:
           - Id: InboxExpirationRule
