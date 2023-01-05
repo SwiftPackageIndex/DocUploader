@@ -8,8 +8,6 @@ Parameters:
     AllowedValues:
       - arm64
       - x86_64
-  InboxBucket:
-    Type: 'AWS::S3::Bucket::Name'
 
   Env:
     Type: String
@@ -41,6 +39,7 @@ Resources:
 
   UploadFunction:
     Type: AWS::Serverless::Function
+    DependsOn: UploadFunctionLogGroup
     Properties:
       Architectures:
         - !Ref Arch
@@ -81,8 +80,7 @@ Resources:
   InboxBucketResource:
     Type: "AWS::S3::Bucket"
     Properties: 
-      BucketName: !Ref InboxBucket  # <- set this from a parameter
-                                    # Fails: Parameters: [InboxBucket] must have values
+      BucketName: !FindInMap [ EnvMapping, !Ref Env, InboxBucket ]
       LifecycleConfiguration:
         Rules:
           - Id: InboxExpirationRule
@@ -93,5 +91,5 @@ Resources:
   UploadFunctionLogGroup:
     Type: "AWS::Logs::LogGroup"
     Properties:
-      LogGroupName: !Join ["", ["/aws/lambda/", !Ref UploadFunction]]
+      LogGroupName: !Sub "/aws/lambda/${UploadFunction}"
       RetentionInDays: 14
