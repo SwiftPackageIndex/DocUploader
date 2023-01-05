@@ -42,7 +42,7 @@ Resources:
     DependsOn: UploadFunctionLogGroup
     Properties:
       Architectures:
-        - !Ref Arch
+        - !FindInMap [ EnvMapping, !Ref Env, Arch ]
       CodeUri: ./.lambda/doc-uploader/lambda.zip
       Handler: "haha"
       Runtime: provided.al2
