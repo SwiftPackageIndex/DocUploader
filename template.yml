@@ -64,8 +64,12 @@ Resources:
               Action:
                 - s3:*
               Resource:
-                - 'arn:aws:s3:::spi-scratch/*'
-                - 'arn:aws:s3:::spi-scratch'
+                - !Sub
+                  - 'arn:aws:s3:::${Bucket}/*'
+                  - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutBucket1 ]
+                - !Sub
+                  - 'arn:aws:s3:::${Bucket}'
+                  - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutBucket1 ]
 
       # add other neeeded stuff here if needed
       Environment:
