@@ -22,12 +22,12 @@ Mappings:
       InboxBucket: spi-scratch-inbox
       # We need to specify two output buckets in prod, so we hack around this by specifying scratch
       # twice here.
-      OutBucket1: spi-scratch
-      OutBucket2: spi-scratch
+      OutputBucket1: spi-scratch
+      OutputBucket2: spi-scratch
     prod:
       InboxBucket: spi-docs-inbox
-      OutBucket1: spi-dev-docs
-      OutBucket2: spi-prod-docs
+      OutputBucket1: spi-dev-docs
+      OutputBucket2: spi-prod-docs
 
 
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
@@ -66,10 +66,16 @@ Resources:
               Resource:
                 - !Sub
                   - 'arn:aws:s3:::${Bucket}/*'
-                  - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutBucket1 ]
+                  - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutputBucket1 ]
                 - !Sub
                   - 'arn:aws:s3:::${Bucket}'
-                  - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutBucket1 ]
+                  - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutputBucket1 ]
+                - !Sub
+                  - 'arn:aws:s3:::${Bucket}/*'
+                  - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutputBucket2 ]
+                - !Sub
+                  - 'arn:aws:s3:::${Bucket}'
+                  - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutputBucket2 ]
 
       # add other neeeded stuff here if needed
       Environment:
