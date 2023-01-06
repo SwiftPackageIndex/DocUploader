@@ -30,8 +30,5 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Build
-        run: make build
-
       - name: Deploy
         run: make deploy-prod
