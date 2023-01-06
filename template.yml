@@ -77,10 +77,9 @@ Resources:
                   - 'arn:aws:s3:::${Bucket}'
                   - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutputBucket2 ]
 
-      # add other neeeded stuff here if needed
       Environment:
         Variables:
-          LOG_LEVEL: info # change log level here
+          LOG_LEVEL: info
       Events:
         InboxEvent:
           Type: S3
