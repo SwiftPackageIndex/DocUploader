@@ -9,6 +9,27 @@ Parameters:
       - arm64
       - x86_64
 
+  Env:
+    Type: String
+    AllowedValues:
+      - test
+      - prod
+
+Mappings:
+  EnvMapping:
+    test:
+      Arch: arm64
+      InboxBucket: spi-scratch-inbox
+      # We need to specify two output buckets in prod, so we hack around this by specifying scratch
+      # twice here.
+      OutputBucket1: spi-scratch
+      OutputBucket2: spi-scratch
+    prod:
+      InboxBucket: spi-docs-inbox
+      OutputBucket1: spi-dev-docs
+      OutputBucket2: spi-prod-docs
+
+
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
@@ -20,7 +41,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Architectures:
-        - !Ref Arch
+        - !FindInMap [ EnvMapping, !Ref Env, Arch ]
       CodeUri: ./.lambda/doc-uploader/lambda.zip
       Handler: "haha"
       Runtime: provided.al2
@@ -36,29 +57,40 @@ Resources:
                 - s3:GetObject
                 - s3:GetObjectACL
                 - s3:DeleteObject
-              Resource: 'arn:aws:s3:::spi-scratch-inbox/*'
+              Resource: !Sub
+                - 'arn:aws:s3:::${Bucket}/*'
+                - Bucket: !FindInMap [ EnvMapping, !Ref Env, InboxBucket ]
             - Effect: Allow
               Action:
                 - s3:*
               Resource:
-                - 'arn:aws:s3:::spi-scratch/*'
-                - 'arn:aws:s3:::spi-scratch'
+                - !Sub
+                  - 'arn:aws:s3:::${Bucket}/*'
+                  - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutputBucket1 ]
+                - !Sub
+                  - 'arn:aws:s3:::${Bucket}'
+                  - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutputBucket1 ]
+                - !Sub
+                  - 'arn:aws:s3:::${Bucket}/*'
+                  - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutputBucket2 ]
+                - !Sub
+                  - 'arn:aws:s3:::${Bucket}'
+                  - Bucket: !FindInMap [ EnvMapping, !Ref Env, OutputBucket2 ]
 
-      # add other neeeded stuff here if needed
       Environment:
         Variables:
-          LOG_LEVEL: info # change log level here
+          LOG_LEVEL: info
       Events:
         InboxEvent:
           Type: S3
           Properties:
-            Bucket: !Ref InboxBucket
+            Bucket: !Ref InboxBucketResource
             Events: s3:ObjectCreated:*
 
-  InboxBucket:
+  InboxBucketResource:
     Type: "AWS::S3::Bucket"
     Properties: 
-      BucketName: spi-scratch-inbox
+      BucketName: !FindInMap [ EnvMapping, !Ref Env, InboxBucket ]
       LifecycleConfiguration:
         Rules:
           - Id: InboxExpirationRule
@@ -69,5 +101,5 @@ Resources:
   UploadFunctionLogGroup:
     Type: "AWS::Logs::LogGroup"
     Properties:
-      LogGroupName: !Join ["", ["/aws/lambda/", !Ref UploadFunction]]
+      LogGroupName: !Sub "/aws/lambda/${UploadFunction}"
       RetentionInDays: 14
