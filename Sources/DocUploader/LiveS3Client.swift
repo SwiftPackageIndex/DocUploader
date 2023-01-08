@@ -25,7 +25,9 @@ struct LiveS3Client: S3Client {
 
     func sync(client: AWSClient, logger: Logger, from folder: String, to key: S3StoreKey) async throws {
         let s3 = S3(client: client, region: .useast2)
-        let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
+        let s3FileTransfer = S3FileTransferManager(s3: s3,
+                                                   threadPoolProvider: .createNew,
+                                                   configuration: .init(maxConcurrentTasks: 12))
 
         guard let s3Folder = S3Folder(url: key.url) else {
             throw Error(message: "Invalid key: \(key)")
