@@ -20,10 +20,9 @@ Mappings:
     test:
       Arch: arm64
       InboxBucket: spi-scratch-inbox
-      # We need to specify two output buckets in prod, so we hack around this by specifying scratch
-      # twice here.
+      # Allow the test process to write to spi-dev-docs alternatively.
       OutputBucket1: spi-scratch
-      OutputBucket2: spi-scratch
+      OutputBucket2: spi-dev-docs
     prod:
       Arch: x86_64
       InboxBucket: spi-docs-inbox
