@@ -27,7 +27,7 @@ struct LiveS3Client: S3Client {
         let s3 = S3(client: client, region: .useast2, timeout: .seconds(60))
         let s3FileTransfer = S3FileTransferManager(s3: s3,
                                                    threadPoolProvider: .createNew,
-                                                   configuration: .init(maxConcurrentTasks: 12))
+                                                   configuration: .init(maxConcurrentTasks: 24))
 
         guard let s3Folder = S3Folder(url: key.url) else {
             throw Error(message: "Invalid key: \(key)")
