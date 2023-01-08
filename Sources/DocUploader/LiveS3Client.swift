@@ -24,7 +24,7 @@ struct LiveS3Client: S3Client {
     }
 
     func copy(client: AWSClient, logger: Logger, from path: String, to key: S3StoreKey) async throws {
-        let s3 = S3(client: client, region: .useast2)
+        let s3 = S3(client: client, region: .useast2, timeout: .seconds(60))
         let s3FileTransfer = S3FileTransferManager(s3: s3,
                                                    threadPoolProvider: .createNew,
                                                    configuration: .init(maxConcurrentTasks: 12))
