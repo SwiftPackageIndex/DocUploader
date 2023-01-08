@@ -84,8 +84,14 @@ public struct DocUploader: LambdaHandler {
                     do {
                         let zipFileName = "\(outputPath)/\(objectKey)"
                         logger.info("Unzipping \(zipFileName)")
+                        var fileIndex = 0
                         metadata = try DocUploadBundle.unzip(bundle: zipFileName,
-                                                                 outputPath: outputPath)
+                                                             outputPath: outputPath) { path in
+                            defer { fileIndex += 1 }
+                            if fileIndex % 100 == 0 {
+                                logger.info("... \(path.lastPathComponent)")
+                            }
+                        }
                         logger.info("✅ Completed unzipping \(zipFileName)")
                     }
 
