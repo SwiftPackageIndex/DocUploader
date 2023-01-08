@@ -41,7 +41,7 @@ protocol S3StoreKey {
 protocol S3Client {
     func deleteFile(client: AWSClient, logger: Logger, key: S3StoreKey) async throws
     func loadFile(client: AWSClient, logger: Logger, from key: S3StoreKey, to path: String) async throws
-    func sync(client: AWSClient, logger: Logger, from folder: String, to key: S3StoreKey) async throws
+    func copy(client: AWSClient, logger: Logger, from path: String, to key: S3StoreKey) async throws
 }
 
 
