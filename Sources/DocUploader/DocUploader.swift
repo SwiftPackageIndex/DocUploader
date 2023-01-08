@@ -88,8 +88,8 @@ public struct DocUploader: LambdaHandler {
                         metadata = try DocUploadBundle.unzip(bundle: zipFileName,
                                                              outputPath: outputPath) { path in
                             defer { fileIndex += 1 }
-                            if fileIndex % 100 == 0 {
-                                logger.info("... \(path.lastPathComponent)")
+                            if fileIndex % 5000 == 0 {
+                                logger.info("... [\(fileIndex)] - \(path.lastPathComponent)")
                             }
                         }
                         logger.info("✅ Completed unzipping \(zipFileName)")
