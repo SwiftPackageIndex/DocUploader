@@ -98,7 +98,7 @@ public struct DocUploader: LambdaHandler {
                     do {
                         let syncPath = "\(outputPath)/\(metadata.sourcePath)"
                         logger.info("Syncing \(syncPath) to \(metadata.targetFolder.s3Key)...")
-                        try await Current.s3Client.copy(client: awsClient,
+                        try await Current.s3Client.sync(client: awsClient,
                                                         logger: logger,
                                                         from: syncPath,
                                                         to: metadata.targetFolder.s3Key)
