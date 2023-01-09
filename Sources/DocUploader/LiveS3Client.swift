@@ -27,7 +27,7 @@ struct LiveS3Client: S3Client {
         let s3 = S3(client: client,
                     region: .useast2,
                     timeout: .seconds(60),
-                    options: [.s3DisableChunkedUploads, .s3UseTransferAcceleratedEndpoint])
+                    options: .s3DisableChunkedUploads)
         let s3FileTransfer = S3FileTransferManager(s3: s3,
                                                    threadPoolProvider: .createNew,
                                                    configuration: .init(maxConcurrentTasks: 12))
