@@ -23,7 +23,7 @@ struct LiveS3Client: S3Client {
         try await s3FileTransfer.copy(from: file, to: path)
     }
 
-    func copy(client: AWSClient, logger: Logger, from path: String, to key: S3StoreKey) async throws {
+    func sync(client: AWSClient, logger: Logger, from folder: String, to key: S3StoreKey) async throws {
         let s3 = S3(client: client,
                     region: .useast2,
                     timeout: .seconds(60),
@@ -37,9 +37,9 @@ struct LiveS3Client: S3Client {
         }
 
         var nextProgressTick = 0.1
-        try await s3FileTransfer.copy(from: path, to: s3Folder) { progress in
+        try await s3FileTransfer.sync(from: folder, to: s3Folder, delete: true) { progress in
             if progress >= nextProgressTick {
-                logger.info("Copying... [\(percent: progress)]")
+                logger.info("Syncing... [\(percent: progress)]")
                 nextProgressTick += 0.1
             }
         }
