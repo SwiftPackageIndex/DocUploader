@@ -1,3 +1,4 @@
+import NIO
 import SotoS3
 import SotoS3FileTransfer
 
@@ -28,8 +29,10 @@ struct LiveS3Client: S3Client {
                     region: .useast2,
                     timeout: .seconds(60),
                     options: .s3DisableChunkedUploads)
+        let threadPool = NIOThreadPool(numberOfThreads: 8)
+        defer { threadPool.shutdownGracefully { _ in } }
         let s3FileTransfer = S3FileTransferManager(s3: s3,
-                                                   threadPoolProvider: .createNew,
+                                                   threadPoolProvider: .shared(threadPool),
                                                    configuration: .init(maxConcurrentTasks: 12))
 
         guard let s3Folder = S3Folder(url: key.url) else {

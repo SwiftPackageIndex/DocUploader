@@ -41,7 +41,7 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/finestructure/soto-s3-file-transfer.git",
       "state" : {
-        "revision" : "a20d5a9ae6a5b3f67b49f01ef6f47c40cc237887"
+        "revision" : "c86abf9f6ae9a651073b1650971688e73645f657"
       }
     },
     {
