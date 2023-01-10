@@ -39,18 +39,10 @@
     {
       "identity" : "soto-s3-file-transfer",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/finestructure/soto-s3-file-transfer.git",
+      "location" : "https://github.com/soto-project/soto-s3-file-transfer.git",
       "state" : {
-        "revision" : "c86abf9f6ae9a651073b1650971688e73645f657"
-      }
-    },
-    {
-      "identity" : "swift-algorithms",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-algorithms.git",
-      "state" : {
-        "revision" : "b14b7f4c528c942f121c8b860b9410b2bf57825e",
-        "version" : "1.0.0"
+        "revision" : "f64a4382400d750ef2ae4a9e0aa471f4234403a0",
+        "version" : "1.1.0"
       }
     },
     {
@@ -159,15 +151,6 @@
       "state" : {
         "revision" : "c0d9a144cfaec8d3d596aadde3039286a266c15c",
         "version" : "1.15.0"
-      }
-    },
-    {
-      "identity" : "swift-numerics",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-numerics",
-      "state" : {
-        "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
-        "version" : "1.0.2"
       }
     },
     {
