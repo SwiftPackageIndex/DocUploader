@@ -1,3 +1,4 @@
+import Foundation
 import SotoS3
 import SotoS3FileTransfer
 
@@ -24,17 +25,25 @@ struct LiveS3Client: S3Client {
     }
 
     func sync(client: AWSClient, logger: Logger, from folder: String, to key: S3StoreKey) async throws {
+        guard let s3Folder = S3Folder(url: key.url) else {
+            throw Error(message: "Invalid key: \(key)")
+        }
+
+        var started = Date()
+        let localFiles = try Self.listFiles(in: folder)
+        logger.info("listFiles (local) elapsed: \(Date().timeIntervalSince(started))")
+
         let s3 = S3(client: client,
                     region: .useast2,
                     timeout: .seconds(60),
                     options: .s3DisableChunkedUploads)
-        let s3FileTransfer = S3FileTransferManager(s3: s3,
-                                                   threadPoolProvider: .createNew,
-                                                   configuration: .init(maxConcurrentTasks: 12))
 
-        guard let s3Folder = S3Folder(url: key.url) else {
-            throw Error(message: "Invalid key: \(key)")
-        }
+        started = Date()
+        let remoteFiles = try await Self.listFiles(s3, logger: logger, in: s3Folder)
+        logger.info("listFiles (remote) elapsed: \(Date().timeIntervalSince(started))")
+
+        let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
+
 
         var nextProgressTick = 0.1
         try await s3FileTransfer.sync(from: folder, to: s3Folder, delete: true) { progress in
