@@ -36,6 +36,16 @@ struct LiveS3Client: S3Client {
                     timeout: .seconds(60),
                     options: .s3DisableChunkedUploads)
 
+        try timed(logger, "listFiles (local)") {
+            let localFiles = try Self.listFiles(in: folder)
+            logger.info("local files: \(localFiles.count)")
+        }
+
+        try await timed(logger, "listFiles (remote)") {
+            let s3Files = try await Self.listFiles(s3, logger: logger, in: s3Folder)
+            logger.info("remote files: \(s3Files.count)")
+        }
+
         let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
         defer { try? s3FileTransfer.syncShutdown() }
 
@@ -53,9 +63,9 @@ struct LiveS3Client: S3Client {
             throw Error(message: "Invalid key: \(key)")
         }
 
-        var started = Date()
-        let localFiles = try Self.listFiles(in: folder)
-        logger.info("listFiles (local) elapsed: \(Date().timeIntervalSince(started))")
+        let localFiles = try timed(logger, "listFiles (local)") {
+            try Self.listFiles(in: folder)
+        }
         logger.info("local files: \(localFiles.count)")
 
         let s3 = S3(client: client,
@@ -63,9 +73,9 @@ struct LiveS3Client: S3Client {
                     timeout: .seconds(60),
                     options: .s3DisableChunkedUploads)
 
-        started = Date()
-        let s3Files = try await Self.listFiles(s3, logger: logger, in: s3Folder)
-        logger.info("listFiles (remote) elapsed: \(Date().timeIntervalSince(started))")
+        let s3Files = try await timed(logger, "listFiles (remote)") {
+            try await Self.listFiles(s3, logger: logger, in: s3Folder)
+        }
         logger.info("remote files: \(s3Files.count)")
 
         let folderResolved = URL(fileURLWithPath: folder).standardizedFileURL.resolvingSymlinksInPath()
@@ -112,7 +122,8 @@ struct LiveS3Client: S3Client {
         for (index, transfer) in transfers.enumerated() {
             let manager = transferManagers[index % concurrency]
             let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
-            try await manager.copy(from: transfer.from.name, to: s3File)
+//            try await manager.copy(from: transfer.from.name, to: s3File)
+
         }
 
     }
@@ -130,4 +141,21 @@ private extension DefaultStringInterpolation {
     mutating func appendInterpolation(percent value: Double) {
         appendInterpolation(String(format: "%.0f%%", value * 100))
     }
+}
+
+
+@discardableResult
+func timed<T>(_ logger: Logger, _ label: String, block: () throws -> T) rethrows -> T {
+    let start = Date()
+    let result = try block()
+    logger.info("\(label) elapsed: \(Date().timeIntervalSince(start))")
+    return result
+}
+
+@discardableResult
+func timed<T>(_ logger: Logger, _ label: String, block: () async throws -> T) async rethrows -> T {
+    let start = Date()
+    let result = try await block()
+    logger.info("\(label) elapsed: \(Date().timeIntervalSince(start))")
+    return result
 }
