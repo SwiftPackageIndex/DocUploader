@@ -12,12 +12,12 @@ extension LiveS3Client {
     }
 
     struct S3FileDescriptor: Equatable {
-        let file: _S3File
+        let file: S3File
         let modificationDate: Date
         let size: Int
     }
 
-    struct _S3File: S3Path {
+    struct S3File: S3Path {
         /// s3 bucket name
         public let bucket: String
         /// path inside s3 bucket
@@ -93,13 +93,21 @@ extension LiveS3Client {
                       let lastModified = $0.lastModified,
                       let fileSize = $0.size else { return nil }
                 return S3FileDescriptor(
-                    file: _S3File(bucket: folder.bucket, key: key),
+                    file: S3File(bucket: folder.bucket, key: key),
                     modificationDate: lastModified,
                     size: Int(fileSize)
                 )
             } ?? []
             return eventLoop.makeSucceededFuture((true, accumulator + files))
         }.get()
+    }
+
+    static func targetFiles(files: [FileDescriptor], from srcFolder: String, to destFolder: S3Folder) -> [(from: FileDescriptor, to: S3File)] {
+        let srcFolder = srcFolder.appendingSuffixIfNeeded("/")
+        return files.map { file in
+            let pathRelative = file.name.removingPrefix(srcFolder)
+            return (from: file, to: S3File(bucket: destFolder.bucket, key: destFolder.key + pathRelative))
+        }
     }
 
 }

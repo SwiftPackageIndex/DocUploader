@@ -8,7 +8,8 @@ struct LiveS3Client: S3Client {
         let s3 = S3(client: client, region: .useast2)
         let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
 
-        guard let file = S3File(key: key) else {
+        // FIXME: drop SotoS3FileTransfer.
+        guard let file = SotoS3FileTransfer.S3File(key: key) else {
             throw Error(message: "Invalid key: \(key)")
         }
         try await s3FileTransfer.delete(file)
@@ -18,7 +19,8 @@ struct LiveS3Client: S3Client {
         let s3 = S3(client: client, region: .useast2)
         let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
 
-        guard let file = S3File(key: key) else {
+        // FIXME: drop SotoS3FileTransfer.
+        guard let file = SotoS3FileTransfer.S3File(key: key) else {
             throw Error(message: "Invalid key: \(key)")
         }
         try await s3FileTransfer.copy(from: file, to: path)
@@ -29,18 +31,10 @@ struct LiveS3Client: S3Client {
             throw Error(message: "Invalid key: \(key)")
         }
 
-        var started = Date()
-        let localFiles = try Self.listFiles(in: folder)
-        logger.info("listFiles (local) elapsed: \(Date().timeIntervalSince(started))")
-
         let s3 = S3(client: client,
                     region: .useast2,
                     timeout: .seconds(60),
                     options: .s3DisableChunkedUploads)
-
-        started = Date()
-        let remoteFiles = try await Self.listFiles(s3, logger: logger, in: s3Folder)
-        logger.info("listFiles (remote) elapsed: \(Date().timeIntervalSince(started))")
 
         let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
         defer { try? s3FileTransfer.syncShutdown() }
@@ -52,6 +46,75 @@ struct LiveS3Client: S3Client {
                 nextProgressTick += 0.1
             }
         }
+    }
+
+    func syncConcurrent(client: AWSClient, logger: Logger, from folder: String, to key: S3StoreKey) async throws {
+        guard let s3Folder = S3Folder(url: key.url) else {
+            throw Error(message: "Invalid key: \(key)")
+        }
+
+        var started = Date()
+        let localFiles = try Self.listFiles(in: folder)
+        logger.info("listFiles (local) elapsed: \(Date().timeIntervalSince(started))")
+        logger.info("local files: \(localFiles.count)")
+
+        let s3 = S3(client: client,
+                    region: .useast2,
+                    timeout: .seconds(60),
+                    options: .s3DisableChunkedUploads)
+
+        started = Date()
+        let s3Files = try await Self.listFiles(s3, logger: logger, in: s3Folder)
+        logger.info("listFiles (remote) elapsed: \(Date().timeIntervalSince(started))")
+        logger.info("remote files: \(s3Files.count)")
+
+        let folderResolved = URL(fileURLWithPath: folder).standardizedFileURL.resolvingSymlinksInPath()
+        let targetFiles = Self.targetFiles(files: localFiles, from: folderResolved.path, to: s3Folder)
+        let transfers = targetFiles.compactMap { transfer -> (from: FileDescriptor, to: S3File)? in
+            // does file exist on S3
+            guard let s3File = s3Files.first(where: { $0.file.key == transfer.to.key }) else { return transfer }
+            // does file on S3 have a later date
+            guard s3File.modificationDate > transfer.from.modificationDate else { return transfer }
+            return nil
+        }
+        let deletions = s3Files.compactMap { s3File -> S3File? in
+            if targetFiles.first(where: { $0.to.key == s3File.file.key }) == nil {
+                return s3File.file
+            } else {
+                return nil
+            }
+        }
+
+        logger.info("transfers: \(transfers.count)")
+        logger.info("deletions: \(deletions.count)")
+
+        let concurrency = 4
+        guard let accessKeyId = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY_ID"],
+              let secretAccessKey = ProcessInfo.processInfo.environment["AWS_SECRET_ACCESS_KEY"] else {
+            throw Error(message: "no credentials")
+        }
+        let awsClients = (0..<concurrency).map { _ in
+            AWSClient(
+                credentialProvider: .static(accessKeyId: accessKeyId, secretAccessKey: secretAccessKey),
+                httpClientProvider: .createNew
+            )
+        }
+        defer { awsClients.forEach { try? $0.syncShutdown() } }
+        let transferManagers = (0..<concurrency).map { index in
+            let s3 = S3(client: awsClients[index],
+                        region: .useast2,
+                        timeout: .seconds(60),
+                        options: .s3DisableChunkedUploads)
+            return S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
+        }
+        defer { transferManagers.forEach { try? $0.syncShutdown() } }
+
+        for (index, transfer) in transfers.enumerated() {
+            let manager = transferManagers[index % concurrency]
+            let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
+            try await manager.copy(from: transfer.from.name, to: s3File)
+        }
+
     }
 }
 
