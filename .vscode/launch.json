@@ -17,6 +17,42 @@
             "args": [],
             "cwd": "${workspaceFolder:spi-doc-uploader}",
             "preLaunchTask": "swift: Build Release doc-uploader"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug doc-test",
+            "program": "${workspaceFolder:spi-doc-uploader}/.build/debug/doc-test",
+            "args": [],
+            "cwd": "${workspaceFolder:spi-doc-uploader}",
+            "preLaunchTask": "swift: Build Debug doc-test"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Release doc-test",
+            "program": "${workspaceFolder:spi-doc-uploader}/.build/release/doc-test",
+            "args": [],
+            "cwd": "${workspaceFolder:spi-doc-uploader}",
+            "preLaunchTask": "swift: Build Release doc-test"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug Executable",
+            "program": "${workspaceFolder:spi-doc-uploader}/.build/debug/Executable",
+            "args": [],
+            "cwd": "${workspaceFolder:spi-doc-uploader}",
+            "preLaunchTask": "swift: Build Debug Executable"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Release Executable",
+            "program": "${workspaceFolder:spi-doc-uploader}/.build/release/Executable",
+            "args": [],
+            "cwd": "${workspaceFolder:spi-doc-uploader}",
+            "preLaunchTask": "swift: Build Release Executable"
         }
     ]
 }
