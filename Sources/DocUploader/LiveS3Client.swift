@@ -84,9 +84,13 @@ struct LiveS3Client: S3Client {
         let targetFiles = Self.targetFiles(files: localFiles, from: folderResolved.path, to: s3Folder)
         logger.info("targetFiles: \(targetFiles.count)")
 
+        var idx = 0
         let transfers = targetFiles.compactMap { transfer -> (from: FileDescriptor, to: S3File)? in
             // does file exist on S3
-            logger.info("file: \(transfer.from.name)")
+            defer { idx += 1 }
+            if idx % 100 == 0 {
+                logger.info("file: \(transfer.from.name)")
+            }
             guard let s3File = s3Files.first(where: { $0.file.key == transfer.to.key }) else { return transfer }
             // does file on S3 have a later date
             guard s3File.modificationDate > transfer.from.modificationDate else { return transfer }
