@@ -28,7 +28,7 @@ public enum UploaderTest {
         let targetKey = S3Key(bucketName: "spi-scratch", objectKey: s3Key)
 
         logger.info("Syncing \(syncPath) to \(targetKey) ...")
-        try await LiveS3Client().sync(client: awsClient,
+        try await LiveS3Client().syncConcurrent(client: awsClient,
                                       logger: logger,
                                       from: syncPath,
                                       to: targetKey)

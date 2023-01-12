@@ -119,11 +119,38 @@ struct LiveS3Client: S3Client {
         }
         defer { transferManagers.forEach { try? $0.syncShutdown() } }
 
-        for (index, transfer) in transfers.enumerated() {
-            let manager = transferManagers[index % concurrency]
-            let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
-//            try await manager.copy(from: transfer.from.name, to: s3File)
+        if !transfers.isEmpty {
+            logger.info("Copying ...")
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                for (index, transfer) in transfers.enumerated() {
+                    let manager = transferManagers[index % concurrency]
+                    let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
+                    if index % 100 == 0 {
+                        logger.info("... [\(index)]")
+                    }
+                    group.addTask {
+                        try await manager.copy(from: transfer.from.name, to: s3File)
+                    }
+                }
+                return try await group.waitForAll()
+            }
+        }
 
+        if !deletions.isEmpty {
+            logger.info("Deleting ...")
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                for (index, deletion) in deletions.enumerated() {
+                    let manager = transferManagers[index % concurrency]
+                    let s3File = SotoS3FileTransfer.S3File(url: deletion.url)!
+                    if index % 100 == 0 {
+                        logger.info("... [\(index)]")
+                    }
+                    group.addTask {
+                        try await manager.delete(s3File)
+                    }
+                }
+                return try await group.waitForAll()
+            }
         }
 
     }
