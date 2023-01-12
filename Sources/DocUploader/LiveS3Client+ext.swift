@@ -11,13 +11,13 @@ extension LiveS3Client {
         let size: Int
     }
 
-    struct S3FileDescriptor: Equatable {
+    struct S3FileDescriptor: Equatable, Codable {
         let file: S3File
         let modificationDate: Date
         let size: Int
     }
 
-    struct S3File: S3Path {
+    struct S3File: S3Path, Codable {
         /// s3 bucket name
         public let bucket: String
         /// path inside s3 bucket

@@ -73,10 +73,19 @@ struct LiveS3Client: S3Client {
                     timeout: .seconds(60),
                     options: .s3DisableChunkedUploads)
 
-        let s3Files = try await timed(logger, "listFiles (remote)") {
-            try await Self.listFiles(s3, logger: logger, in: s3Folder)
+        let s3Files: [S3FileDescriptor]
+        let cacheFile = URL(fileURLWithPath: "/Users/sas/Downloads/s3-files.json")
+        if Foundation.FileManager.default.fileExists(atPath: cacheFile.path) {
+            s3Files = try JSONDecoder().decode([S3FileDescriptor].self,
+                                               from: Data(contentsOf: cacheFile))
+        } else {
+            s3Files = try await timed(logger, "listFiles (remote)") {
+                try await Self.listFiles(s3, logger: logger, in: s3Folder)
+            }
+            try JSONEncoder().encode(s3Files).write(to: cacheFile)
         }
         logger.info("remote files: \(s3Files.count)")
+
 
         let folderResolved = URL(fileURLWithPath: folder).standardizedFileURL.resolvingSymlinksInPath()
         logger.info("folderResolved: \(folderResolved.lastPathComponent)")
@@ -85,28 +94,39 @@ struct LiveS3Client: S3Client {
         logger.info("targetFiles: \(targetFiles.count)")
 
         var idx = 0
-        let transfers = targetFiles.compactMap { transfer -> (from: FileDescriptor, to: S3File)? in
-            // does file exist on S3
-            defer { idx += 1 }
-            if idx % 100 == 0 {
-                logger.info("file[\(idx)]: \(transfer.from.name)")
+        let transfers = timed(logger, "transfers compactMap") {
+            targetFiles.compactMap { transfer -> (from: FileDescriptor, to: S3File)? in
+                defer { idx += 1 }
+                if idx % 1000 == 0 {
+                    logger.info("file[\(idx)]")
+                }
+                // does file exist on S3
+                guard let s3File = s3Files.first(where: { $0.file.key == transfer.to.key }) else { return transfer }
+                // does file on S3 have a later date
+                guard s3File.modificationDate > transfer.from.modificationDate else { return transfer }
+                return nil
             }
-            guard let s3File = s3Files.first(where: { $0.file.key == transfer.to.key }) else { return transfer }
-            // does file on S3 have a later date
-            guard s3File.modificationDate > transfer.from.modificationDate else { return transfer }
-            return nil
         }
         logger.info("transfers: \(transfers.count)")
 
-        let deletions = s3Files.compactMap { s3File -> S3File? in
-            if targetFiles.first(where: { $0.to.key == s3File.file.key }) == nil {
-                return s3File.file
-            } else {
-                return nil
+        idx = 0
+        let deletions = timed(logger, "deletions compactMap") {
+            s3Files.compactMap { s3File -> S3File? in
+                defer { idx += 1 }
+                if idx % 1000 == 0 {
+                    logger.info("file[\(idx)]")
+                }
+                if targetFiles.first(where: { $0.to.key == s3File.file.key }) == nil {
+                    return s3File.file
+                } else {
+                    return nil
+                }
             }
         }
 
         logger.info("deletions: \(deletions.count)")
+
+        return
 
         let concurrency = 4
         guard let accessKeyId = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY_ID"],
