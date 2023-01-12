@@ -79,7 +79,11 @@ struct LiveS3Client: S3Client {
         logger.info("remote files: \(s3Files.count)")
 
         let folderResolved = URL(fileURLWithPath: folder).standardizedFileURL.resolvingSymlinksInPath()
+        logger.info("folderResolved: \(folderResolved.lastPathComponent)")
+
         let targetFiles = Self.targetFiles(files: localFiles, from: folderResolved.path, to: s3Folder)
+        logger.info("targetFiles: \(targetFiles.count)")
+
         let transfers = targetFiles.compactMap { transfer -> (from: FileDescriptor, to: S3File)? in
             // does file exist on S3
             guard let s3File = s3Files.first(where: { $0.file.key == transfer.to.key }) else { return transfer }
@@ -87,6 +91,8 @@ struct LiveS3Client: S3Client {
             guard s3File.modificationDate > transfer.from.modificationDate else { return transfer }
             return nil
         }
+        logger.info("transfers: \(transfers.count)")
+
         let deletions = s3Files.compactMap { s3File -> S3File? in
             if targetFiles.first(where: { $0.to.key == s3File.file.key }) == nil {
                 return s3File.file
@@ -95,7 +101,6 @@ struct LiveS3Client: S3Client {
             }
         }
 
-        logger.info("transfers: \(transfers.count)")
         logger.info("deletions: \(deletions.count)")
 
         let concurrency = 4
