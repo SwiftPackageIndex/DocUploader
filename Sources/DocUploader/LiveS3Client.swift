@@ -86,13 +86,8 @@ struct LiveS3Client: S3Client {
         let s3KeyMap = Dictionary(uniqueKeysWithValues: s3Files.map { ($0.file.key, $0) })
         let targetKeyMap = Dictionary(uniqueKeysWithValues: targetFiles.map { ($0.to.key, $0) })
 
-        var idx = 0
         let transfers = timed(logger, "transfers compactMap") {
             targetFiles.compactMap { transfer -> (from: FileDescriptor, to: S3File)? in
-                defer { idx += 1 }
-                if idx % 1000 == 0 {
-                    logger.info("file[\(idx)]")
-                }
                 // does file exist on S3
                 guard let s3File = s3KeyMap[transfer.to.key] else { return transfer }
                 // does file on S3 have a later date
@@ -102,13 +97,8 @@ struct LiveS3Client: S3Client {
         }
         logger.info("transfers: \(transfers.count)")
 
-        idx = 0
         let deletions = timed(logger, "deletions compactMap") {
             s3Files.compactMap { s3File -> S3File? in
-                defer { idx += 1 }
-                if idx % 1000 == 0 {
-                    logger.info("file[\(idx)]")
-                }
                 if targetKeyMap[s3File.file.key] == nil {
                     return s3File.file
                 } else {
