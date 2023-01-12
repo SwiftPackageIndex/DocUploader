@@ -73,16 +73,8 @@ struct LiveS3Client: S3Client {
                     timeout: .seconds(60),
                     options: .s3DisableChunkedUploads)
 
-        let s3Files: [S3FileDescriptor]
-        let cacheFile = URL(fileURLWithPath: "/Users/sas/Downloads/s3-files.json")
-        if Foundation.FileManager.default.fileExists(atPath: cacheFile.path) {
-            s3Files = try JSONDecoder().decode([S3FileDescriptor].self,
-                                               from: Data(contentsOf: cacheFile))
-        } else {
-            s3Files = try await timed(logger, "listFiles (remote)") {
-                try await Self.listFiles(s3, logger: logger, in: s3Folder)
-            }
-            try JSONEncoder().encode(s3Files).write(to: cacheFile)
+        let s3Files = try await timed(logger, "listFiles (remote)") {
+            try await Self.listFiles(s3, logger: logger, in: s3Folder)
         }
         logger.info("remote files: \(s3Files.count)")
 
@@ -124,10 +116,7 @@ struct LiveS3Client: S3Client {
                 }
             }
         }
-
         logger.info("deletions: \(deletions.count)")
-
-        return
 
         let concurrency = 4
         guard let accessKeyId = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY_ID"],
