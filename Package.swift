@@ -7,6 +7,7 @@ let package = Package(
     name: "spi-doc-uploader",
     platforms: [.macOS(.v12)],
     products: [
+        .executable(name: "doc-test", targets: ["DocTest"]),
         .executable(name: "doc-uploader", targets: ["Executable"]),
         .library(name: "DocUploaderBundle", targets: ["DocUploaderBundle"])
     ],
@@ -17,6 +18,7 @@ let package = Package(
         .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.2")
     ],
     targets: [
+        .executableTarget(name: "DocTest", dependencies: ["DocUploader"]),
         .executableTarget(name: "Executable", dependencies: ["DocUploader"]),
         .target(name: "DocUploader", dependencies: [
             "DocUploaderBundle",
