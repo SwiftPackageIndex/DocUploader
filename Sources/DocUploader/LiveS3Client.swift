@@ -89,7 +89,7 @@ struct LiveS3Client: S3Client {
             // does file exist on S3
             defer { idx += 1 }
             if idx % 100 == 0 {
-                logger.info("file: \(transfer.from.name)")
+                logger.info("file[\(idx)]: \(transfer.from.name)")
             }
             guard let s3File = s3Files.first(where: { $0.file.key == transfer.to.key }) else { return transfer }
             // does file on S3 have a later date
