@@ -43,7 +43,7 @@ struct LiveS3Client: S3Client {
         logger.info("listFiles (remote) elapsed: \(Date().timeIntervalSince(started))")
 
         let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
-
+        defer { try? s3FileTransfer.syncShutdown() }
 
         var nextProgressTick = 0.1
         try await s3FileTransfer.sync(from: folder, to: s3Folder, delete: true) { progress in

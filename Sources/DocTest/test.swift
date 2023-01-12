@@ -7,9 +7,9 @@ import DocUploader
 struct DocTest {
     static func main() async throws {
         let args = ProcessInfo.processInfo.arguments
-        guard args.count > 1 else {
-            fatalError("Usage: doc-test <sync path>")
+        guard args.count > 2 else {
+            fatalError("Usage: doc-test <sync path> <s3 key>")
         }
-        try await UploaderTest.sync(path: args[1])
+        try await UploaderTest.test(syncPath: args[1], s3Key: args[2])
     }
 }
