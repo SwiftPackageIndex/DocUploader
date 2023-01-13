@@ -108,7 +108,7 @@ struct LiveS3Client: S3Client {
         }
         logger.info("deletions: \(deletions.count)")
 
-        let clientConcurrency = 4
+        let clientConcurrency = 8
         guard let accessKeyId = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY_ID"],
               let secretAccessKey = ProcessInfo.processInfo.environment["AWS_SECRET_ACCESS_KEY"] else {
             throw Error(message: "no credentials")
