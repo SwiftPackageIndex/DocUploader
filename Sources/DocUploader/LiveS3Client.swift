@@ -143,7 +143,7 @@ struct LiveS3Client: S3Client {
                             do {
                                 await taskConcurrency.increment()
                                 try await manager.copy(from: transfer.from.name, to: s3File)
-                                if index % 100 == 0 {
+                                if index % 500 == 0 {
                                     logger.info("... [\(index)] copied")
                                 }
                                 await taskConcurrency.decrement()
@@ -174,7 +174,7 @@ struct LiveS3Client: S3Client {
                         let s3File = SotoS3FileTransfer.S3File(url: deletion.url)!
                         group.addTask {
                             try await manager.delete(s3File)
-                            if index % 100 == 0 {
+                            if index % 500 == 0 {
                                 logger.info("... [\(index)] deleted")
                             }
                         }
