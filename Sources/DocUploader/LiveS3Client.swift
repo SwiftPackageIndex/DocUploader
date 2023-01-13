@@ -135,7 +135,7 @@ struct LiveS3Client: S3Client {
                 for (index, transfer) in transfers.enumerated() {
                     let manager = transferManagers[index % concurrency]
                     let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
-                    if index % 100 == 0 {
+                    if index % 1000 == 0 {
                         logger.info("... [\(index)]")
                     }
                     group.addTask {
@@ -152,7 +152,7 @@ struct LiveS3Client: S3Client {
                 for (index, deletion) in deletions.enumerated() {
                     let manager = transferManagers[index % concurrency]
                     let s3File = SotoS3FileTransfer.S3File(url: deletion.url)!
-                    if index % 100 == 0 {
+                    if index % 1000 == 0 {
                         logger.info("... [\(index)]")
                     }
                     group.addTask {
