@@ -108,8 +108,8 @@ struct LiveS3Client: S3Client {
         }
         logger.info("deletions: \(deletions.count)")
 
-        let clientConcurrency = 1
-        let taskConcurrency = Concurrency(maximum: 4)
+        let clientConcurrency = 4
+        let taskConcurrency = Concurrency(maximum: 8)
 
         guard let accessKeyId = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY_ID"],
               let secretAccessKey = ProcessInfo.processInfo.environment["AWS_SECRET_ACCESS_KEY"] else {
