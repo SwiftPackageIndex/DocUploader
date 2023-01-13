@@ -108,19 +108,19 @@ struct LiveS3Client: S3Client {
         }
         logger.info("deletions: \(deletions.count)")
 
-        let concurrency = 1
+        let clientConcurrency = 1
         guard let accessKeyId = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY_ID"],
               let secretAccessKey = ProcessInfo.processInfo.environment["AWS_SECRET_ACCESS_KEY"] else {
             throw Error(message: "no credentials")
         }
-        let awsClients = (0..<concurrency).map { _ in
+        let awsClients = (0..<clientConcurrency).map { _ in
             AWSClient(
                 credentialProvider: .static(accessKeyId: accessKeyId, secretAccessKey: secretAccessKey),
                 httpClientProvider: .createNew
             )
         }
         defer { awsClients.forEach { try? $0.syncShutdown() } }
-        let transferManagers = (0..<concurrency).map { index in
+        let transferManagers = (0..<clientConcurrency).map { index in
             let s3 = S3(client: awsClients[index],
                         region: .useast2,
                         timeout: .seconds(60),
@@ -129,21 +129,27 @@ struct LiveS3Client: S3Client {
         }
         defer { transferManagers.forEach { try? $0.syncShutdown() } }
 
+        let taskConcurrency = Concurrency(maximum: 50)
+
         if !transfers.isEmpty {
             logger.info("Copying ...")
             let done = await withTaskGroup(of: LiveS3Client.FileDescriptor?.self) { group in
                 for (index, transfer) in transfers.enumerated() {
-                    let manager = transferManagers[index % concurrency]
+                    try? await taskConcurrency.waitForAvailability()
+                    let manager = transferManagers[index % clientConcurrency]
                     let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
                     group.addTask {
                         do {
+                            await taskConcurrency.increment()
                             try await manager.copy(from: transfer.from.name, to: s3File)
                             if index % 100 == 0 {
                                 logger.info("... [\(index)] copied")
                             }
+                            await taskConcurrency.decrement()
                             return transfer.from
                         } catch {
                             logger.error("addTask handler: \(error)")
+                            await taskConcurrency.decrement()
                             return nil
                         }
                     }
@@ -161,7 +167,7 @@ struct LiveS3Client: S3Client {
             logger.info("Deleting ...")
             try await withThrowingTaskGroup(of: Void.self) { group in
                 for (index, deletion) in deletions.enumerated() {
-                    let manager = transferManagers[index % concurrency]
+                    let manager = transferManagers[index % clientConcurrency]
                     let s3File = SotoS3FileTransfer.S3File(url: deletion.url)!
                     group.addTask {
                         try await manager.delete(s3File)
@@ -206,4 +212,31 @@ func timed<T>(_ logger: Logger, _ label: String, block: () async throws -> T) as
     let result = try await block()
     logger.info("\(label) elapsed: \(Date().timeIntervalSince(start))")
     return result
+}
+
+actor Concurrency {
+    var current = 0
+    var maximum: Int
+    var granularity: Double
+
+    init(maximum: Int, granularity: Double = 0.1) {
+        self.maximum = maximum
+        self.granularity = granularity
+    }
+
+    var unavailable: Bool { current > maximum }
+
+    func increment() { current += 1 }
+    func decrement() { current -= 1 }
+
+    func waitForAvailability() async throws {
+        while unavailable { try await Task.sleep(seconds: granularity) }
+    }
+}
+
+
+extension Task where Success == Never, Failure == Never {
+    static func sleep(seconds: TimeInterval) async throws {
+        try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000.0))
+    }
 }
