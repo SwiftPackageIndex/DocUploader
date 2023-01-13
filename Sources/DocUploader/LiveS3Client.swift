@@ -108,8 +108,8 @@ struct LiveS3Client: S3Client {
         }
         logger.info("deletions: \(deletions.count)")
 
-        let clientConcurrency = 4
-        let taskConcurrency = Concurrency(maximum: 1)
+        let clientConcurrency = 1
+        let taskConcurrency = Concurrency(maximum: 4)
 
         guard let accessKeyId = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY_ID"],
               let secretAccessKey = ProcessInfo.processInfo.environment["AWS_SECRET_ACCESS_KEY"] else {
@@ -215,7 +215,7 @@ func timed<T>(_ logger: Logger, _ label: String, block: () throws -> T) rethrows
 func timed<T>(_ logger: Logger, _ label: String, block: () async throws -> T) async rethrows -> T {
     let start = Date()
     let result = try await block()
-    logger.info("\(label) elapsed: \(Date().timeIntervalSince(start))")
+    logger.info("\(label) elapsed: \(Date().timeIntervalSince(start))s (\(Date().timeIntervalSince(start)/60)m)")
     return result
 }
 
