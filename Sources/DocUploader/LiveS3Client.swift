@@ -108,7 +108,7 @@ struct LiveS3Client: S3Client {
         }
         logger.info("deletions: \(deletions.count)")
 
-        let concurrency = 4
+        let concurrency = 1
         guard let accessKeyId = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY_ID"],
               let secretAccessKey = ProcessInfo.processInfo.environment["AWS_SECRET_ACCESS_KEY"] else {
             throw Error(message: "no credentials")
@@ -139,12 +139,7 @@ struct LiveS3Client: S3Client {
                         logger.info("... [\(index)]")
                     }
                     group.addTask {
-                        do {
-                            try await manager.copy(from: transfer.from.name, to: s3File)
-                        } catch {
-                            logger.error("\(error) while copying \(transfer.from.name)")
-                            throw error
-                        }
+                        try await manager.copy(from: transfer.from.name, to: s3File)
                     }
                 }
                 return try await group.waitForAll()
