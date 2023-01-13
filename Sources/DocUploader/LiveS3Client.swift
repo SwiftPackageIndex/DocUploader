@@ -131,7 +131,7 @@ struct LiveS3Client: S3Client {
 
         if !transfers.isEmpty {
             logger.info("Copying ...")
-            try await withThrowingTaskGroup(of: Void.self) { group in
+            let done = try await withThrowingTaskGroup(of: LiveS3Client.FileDescriptor.self) { group in
                 for (index, transfer) in transfers.enumerated() {
                     let manager = transferManagers[index % concurrency]
                     let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
@@ -140,10 +140,16 @@ struct LiveS3Client: S3Client {
                         if index % 100 == 0 {
                             logger.info("... [\(index)] copied")
                         }
+                        return transfer.from
                     }
                 }
-                return try await group.waitForAll()
+                var done = [LiveS3Client.FileDescriptor]()
+                for try await file in group {
+                    done.append(file)
+                }
+                return done
             }
+            logger.info("Copied: \(done.count)")
         }
 
         if !deletions.isEmpty {
