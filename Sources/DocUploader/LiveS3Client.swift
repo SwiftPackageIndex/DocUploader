@@ -132,51 +132,55 @@ struct LiveS3Client: S3Client {
         let taskConcurrency = Concurrency(maximum: 10)
 
         if !transfers.isEmpty {
-            logger.info("Copying ...")
-            let done = await withTaskGroup(of: LiveS3Client.FileDescriptor?.self) { group in
-                for (index, transfer) in transfers.enumerated() {
-                    try? await taskConcurrency.waitForAvailability()
-                    let manager = transferManagers[index % clientConcurrency]
-                    let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
-                    group.addTask {
-                        do {
-                            await taskConcurrency.increment()
-                            try await manager.copy(from: transfer.from.name, to: s3File)
-                            if index % 100 == 0 {
-                                logger.info("... [\(index)] copied")
+            await timed(logger, "copying") {
+                logger.info("Copying ...")
+                let done = await withTaskGroup(of: LiveS3Client.FileDescriptor?.self) { group in
+                    for (index, transfer) in transfers.enumerated() {
+                        try? await taskConcurrency.waitForAvailability()
+                        let manager = transferManagers[index % clientConcurrency]
+                        let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
+                        group.addTask {
+                            do {
+                                await taskConcurrency.increment()
+                                try await manager.copy(from: transfer.from.name, to: s3File)
+                                if index % 100 == 0 {
+                                    logger.info("... [\(index)] copied")
+                                }
+                                await taskConcurrency.decrement()
+                                return transfer.from
+                            } catch {
+                                logger.error("addTask handler: \(error)")
+                                await taskConcurrency.decrement()
+                                return nil
                             }
-                            await taskConcurrency.decrement()
-                            return transfer.from
-                        } catch {
-                            logger.error("addTask handler: \(error)")
-                            await taskConcurrency.decrement()
-                            return nil
                         }
                     }
-                }
 
-                let done = await group
-                    .compactMap { $0 }
-                    .reduce(into: [], { result, next in result.append(next) })
-                return done
+                    let done = await group
+                        .compactMap { $0 }
+                        .reduce(into: [], { result, next in result.append(next) })
+                    return done
+                }
+                logger.info("Copied: \(done.count)")
             }
-            logger.info("Copied: \(done.count)")
         }
 
         if !deletions.isEmpty {
-            logger.info("Deleting ...")
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                for (index, deletion) in deletions.enumerated() {
-                    let manager = transferManagers[index % clientConcurrency]
-                    let s3File = SotoS3FileTransfer.S3File(url: deletion.url)!
-                    group.addTask {
-                        try await manager.delete(s3File)
-                        if index % 100 == 0 {
-                            logger.info("... [\(index)] deleted")
+            try await timed(logger, "deleting") {
+                logger.info("Deleting ...")
+                try await withThrowingTaskGroup(of: Void.self) { group in
+                    for (index, deletion) in deletions.enumerated() {
+                        let manager = transferManagers[index % clientConcurrency]
+                        let s3File = SotoS3FileTransfer.S3File(url: deletion.url)!
+                        group.addTask {
+                            try await manager.delete(s3File)
+                            if index % 100 == 0 {
+                                logger.info("... [\(index)] deleted")
+                            }
                         }
                     }
+                    return try await group.waitForAll()
                 }
-                return try await group.waitForAll()
             }
         }
 
