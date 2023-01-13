@@ -108,7 +108,7 @@ struct LiveS3Client: S3Client {
         }
         logger.info("deletions: \(deletions.count)")
 
-        let clientConcurrency = 8
+        let clientConcurrency = 16
         guard let accessKeyId = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY_ID"],
               let secretAccessKey = ProcessInfo.processInfo.environment["AWS_SECRET_ACCESS_KEY"] else {
             throw Error(message: "no credentials")
@@ -129,7 +129,7 @@ struct LiveS3Client: S3Client {
         }
         defer { transferManagers.forEach { try? $0.syncShutdown() } }
 
-        let taskConcurrency = Concurrency(maximum: 8)
+        let taskConcurrency = Concurrency(maximum: 4)
 
         if !transfers.isEmpty {
             await timed(logger, "copying (concurrency: client: \(clientConcurrency), task: \(taskConcurrency)") {
