@@ -144,8 +144,12 @@ struct LiveS3Client: S3Client {
                     }
                 }
                 var done = [LiveS3Client.FileDescriptor]()
-                for try await file in group {
-                    done.append(file)
+                do {
+                    for try await file in group {
+                        done.append(file)
+                    }
+                } catch {
+                    logger.error("in withThrowingTaskGroup: \(error)")
                 }
                 return done
             }
