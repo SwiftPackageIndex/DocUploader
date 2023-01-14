@@ -194,7 +194,11 @@ struct LiveS3Client: S3Client {
                 let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
 
                 let chunk = Int(Double(transfers.count)/10.0)
-                let progress = Dictionary(uniqueKeysWithValues: (0..<10).map { ($0 * chunk, $0 * 10) })
+                let progress = Dictionary(uniqueKeysWithValues:
+                                          // 10% - 90% increments
+                                          (0..<10).map { ($0 * chunk, $0 * 10) }
+                                          // + 100% for the last element index
+                                          + [(transfers.count - 1, 10)])
 
                 group.addTask {
                     do {
