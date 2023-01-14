@@ -58,6 +58,8 @@ struct LiveS3Client: S3Client {
         }
     }
 
+    typealias Transfer = (from: LiveS3Client.FileDescriptor, to: LiveS3Client.S3File)
+
     func syncConcurrent(client: AWSClient, logger: Logger, from folder: String, to key: S3StoreKey) async throws {
         guard let s3Folder = S3Folder(url: key.url) else {
             throw Error(message: "Invalid key: \(key)")
@@ -111,58 +113,26 @@ struct LiveS3Client: S3Client {
         let clientConcurrency = 4
         let taskConcurrency = Concurrency(maximum: 8)
 
-        guard let accessKeyId = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY_ID"],
-              let secretAccessKey = ProcessInfo.processInfo.environment["AWS_SECRET_ACCESS_KEY"] else {
-            throw Error(message: "no credentials")
-        }
-        let awsClients = (0..<clientConcurrency).map { _ in
-            AWSClient(
-                credentialProvider: .static(accessKeyId: accessKeyId, secretAccessKey: secretAccessKey),
-                httpClientProvider: .createNew
-            )
-        }
+        let awsClients = try awsClients(count: clientConcurrency)
         defer { awsClients.forEach { try? $0.syncShutdown() } }
-        let transferManagers = (0..<clientConcurrency).map { index in
-            let s3 = S3(client: awsClients[index],
-                        region: .useast2,
-                        timeout: .seconds(60),
-                        options: .s3DisableChunkedUploads)
-            return S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
-        }
+
+        let transferManagers = transferManagers(awsClients)
         defer { transferManagers.forEach { try? $0.syncShutdown() } }
 
-
         if !transfers.isEmpty {
+            var remaining = transfers
             await timed(logger, "copying (concurrency client/task: \(clientConcurrency)/\(taskConcurrency.maximum)") {
                 logger.info("Copying ...")
-                let done = await withTaskGroup(of: LiveS3Client.FileDescriptor?.self) { group in
-                    for (index, transfer) in transfers.enumerated() {
-                        try? await taskConcurrency.waitForAvailability()
-                        let manager = transferManagers[index % clientConcurrency]
-                        let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
-                        group.addTask {
-                            do {
-                                await taskConcurrency.increment()
-                                try await manager.copy(from: transfer.from.name, to: s3File)
-                                if index % 500 == 0 {
-                                    logger.info("... [\(index)] copied")
-                                }
-                                await taskConcurrency.decrement()
-                                return transfer.from
-                            } catch {
-                                logger.error("addTask handler: \(error)")
-                                await taskConcurrency.decrement()
-                                return nil
-                            }
-                        }
-                    }
-
-                    let done = await group
-                        .compactMap { $0 }
-                        .reduce(into: [], { result, next in result.append(next) })
-                    return done
+                var iteration = 0
+                while !remaining.isEmpty && iteration < 10 {
+                    logger.info("Iteration \(iteration)")
+                    defer { iteration += 1}
+                    remaining = await _copy(transfers: remaining,
+                                            logger: logger,
+                                            transferManagers: transferManagers,
+                                            taskConcurrency: taskConcurrency)
+                    logger.info("Remaining: \(remaining.count)")
                 }
-                logger.info("Copied: \(done.count)")
             }
         }
 
@@ -184,7 +154,62 @@ struct LiveS3Client: S3Client {
                 }
             }
         }
+    }
 
+    func awsClients(count: Int) throws -> [AWSClient] {
+        guard let accessKeyId = ProcessInfo.processInfo.environment["AWS_ACCESS_KEY_ID"],
+              let secretAccessKey = ProcessInfo.processInfo.environment["AWS_SECRET_ACCESS_KEY"] else {
+            throw Error(message: "no credentials")
+        }
+        return (0..<count).map { _ in
+            AWSClient(
+                credentialProvider: .static(accessKeyId: accessKeyId, secretAccessKey: secretAccessKey),
+                httpClientProvider: .createNew
+            )
+        }
+    }
+
+    func transferManagers(_ awsClients: [AWSClient]) -> [S3FileTransferManager] {
+        awsClients.map {
+            let s3 = S3(client: $0,
+                        region: .useast2,
+                        timeout: .seconds(60),
+                        options: .s3DisableChunkedUploads)
+            return S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
+        }
+    }
+
+    func _copy(transfers: [Transfer],
+               logger: Logger,
+               transferManagers: [S3FileTransferManager],
+               taskConcurrency: Concurrency) async -> [Transfer] {
+        await withTaskGroup(of: Transfer?.self) { group in
+            for (index, transfer) in transfers.enumerated() {
+                try? await taskConcurrency.waitForAvailability()
+                let manager = transferManagers[index % transferManagers.count]
+                let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
+                group.addTask {
+                    do {
+                        await taskConcurrency.increment()
+                        try await manager.copy(from: transfer.from.name, to: s3File)
+                        if index % 1000 == 0 {
+                            logger.info("... [\(index)] copied")
+                        }
+                        await taskConcurrency.decrement()
+                        return nil
+                    } catch {
+                        // logger.error("addTask handler: \(error)")
+                        await taskConcurrency.decrement()
+                        return transfer
+                    }
+                }
+            }
+
+            let remaining = await group
+                .compactMap { $0 }
+                .reduce(into: [], { result, next in result.append(next) })
+            return remaining
+        }
     }
 }
 
