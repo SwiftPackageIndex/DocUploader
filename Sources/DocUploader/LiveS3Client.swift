@@ -115,7 +115,7 @@ struct LiveS3Client: S3Client {
         logger.info("deletions: \(deletions.count)")
 
         let clientConcurrency = 4
-        let taskConcurrency = Concurrency(maximum: 8)
+        let taskConcurrency = Concurrency(maximum: 1)
 
         let awsClients = try awsClients(count: clientConcurrency)
         defer { awsClients.forEach { try? $0.syncShutdown() } }
