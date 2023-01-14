@@ -188,12 +188,16 @@ struct LiveS3Client: S3Client {
                 try? await taskConcurrency.waitForAvailability()
                 let manager = transferManagers[index % transferManagers.count]
                 let s3File = SotoS3FileTransfer.S3File(url: transfer.to.url)!
+
+                let chunk = Int(Double(transfers.count)/10.0)
+                let progress = Dictionary(uniqueKeysWithValues: (0..<10).map { ($0 * chunk, $0 * 10) })
+
                 group.addTask {
                     do {
                         await taskConcurrency.increment()
                         try await manager.copy(from: transfer.from.name, to: s3File)
-                        if index % 1000 == 0 {
-                            logger.info("... [\(index)] copied")
+                        if let p = progress[index] {
+                            logger.info("... \(p)%")
                         }
                         await taskConcurrency.decrement()
                         return nil
