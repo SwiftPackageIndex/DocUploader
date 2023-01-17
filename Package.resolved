@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-server/async-http-client.git",
       "state" : {
-        "revision" : "5bee16a79922e3efcb5cea06ecd27e6f8048b56b",
-        "version" : "1.13.1"
+        "revision" : "7f05a8da46cc2a4ab43218722298b81ac7a08031",
+        "version" : "1.13.2"
       }
     },
     {
@@ -32,25 +32,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/soto-project/soto-core.git",
       "state" : {
-        "revision" : "02d3054ed054a587ce1778bd946a783abd8f62e3",
-        "version" : "6.4.0"
+        "revision" : "cf1c872126e4874144ed2f91aa2124e72388abe0",
+        "version" : "6.4.1"
       }
     },
     {
       "identity" : "soto-s3-file-transfer",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/finestructure/soto-s3-file-transfer.git",
+      "location" : "https://github.com/soto-project/soto-s3-file-transfer.git",
       "state" : {
-        "revision" : "a20d5a9ae6a5b3f67b49f01ef6f47c40cc237887"
-      }
-    },
-    {
-      "identity" : "swift-algorithms",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-algorithms.git",
-      "state" : {
-        "revision" : "b14b7f4c528c942f121c8b860b9410b2bf57825e",
-        "version" : "1.0.0"
+        "revision" : "78d655d4f811026dce90f065d5aa88946d7a1b1e",
+        "version" : "1.2.0"
       }
     },
     {
@@ -159,15 +151,6 @@
       "state" : {
         "revision" : "c0d9a144cfaec8d3d596aadde3039286a266c15c",
         "version" : "1.15.0"
-      }
-    },
-    {
-      "identity" : "swift-numerics",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-numerics",
-      "state" : {
-        "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
-        "version" : "1.0.2"
       }
     },
     {
