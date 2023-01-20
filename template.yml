@@ -20,10 +20,9 @@ Mappings:
     test:
       Arch: arm64
       InboxBucket: spi-scratch-inbox
-      # We need to specify two output buckets in prod, so we hack around this by specifying scratch
-      # twice here.
+      # Allow the test process to write to spi-dev-docs alternatively.
       OutputBucket1: spi-scratch
-      OutputBucket2: spi-scratch
+      OutputBucket2: spi-dev-docs
     prod:
       Arch: x86_64
       InboxBucket: spi-docs-inbox
@@ -34,7 +33,7 @@ Mappings:
 # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
-    Timeout: 300
+    Timeout: 900
 
 Resources:
 
@@ -46,7 +45,7 @@ Resources:
       CodeUri: ./.lambda/doc-uploader/lambda.zip
       Handler: "haha"
       Runtime: provided.al2
-      MemorySize: 2048
+      MemorySize: 1024
       EphemeralStorage:
         Size: 2048
       Policies:

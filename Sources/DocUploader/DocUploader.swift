@@ -12,7 +12,13 @@ public struct DocUploader: LambdaHandler {
     let awsClient: AWSClient
 
     public init(context: LambdaInitializationContext) async throws {
-        let httpClient = HTTPClient(eventLoopGroupProvider: .shared(context.eventLoop))
+        let httpClient = HTTPClient(
+            eventLoopGroupProvider: .shared(context.eventLoop),
+            configuration: .init(connectionPool: .init(
+                idleTimeout: .seconds(60),
+                concurrentHTTP1ConnectionsPerHostSoftLimit: 32)
+            )
+        )
         context.terminator.register(name: "awsclient") { eventLoop in
             let promise = eventLoop.makePromise(of: Void.self)
             httpClient.shutdown() { error in

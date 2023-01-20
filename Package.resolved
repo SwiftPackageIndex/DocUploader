@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-server/async-http-client.git",
       "state" : {
-        "revision" : "5bee16a79922e3efcb5cea06ecd27e6f8048b56b",
-        "version" : "1.13.1"
+        "revision" : "7f05a8da46cc2a4ab43218722298b81ac7a08031",
+        "version" : "1.13.2"
       }
     },
     {
@@ -23,8 +23,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/soto-project/soto.git",
       "state" : {
-        "revision" : "ad93b6bfb76696324bc0c9f0354f59b5060d4317",
-        "version" : "6.3.0"
+        "revision" : "258094b83797fb9ad4fe3882b1a6a46a92d2c2ae",
+        "version" : "6.4.0"
       }
     },
     {
@@ -32,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/soto-project/soto-core.git",
       "state" : {
-        "revision" : "84a53eaef17c29ec8eb14dfcee1e44d5880b85b7",
-        "version" : "6.3.0"
+        "revision" : "cf1c872126e4874144ed2f91aa2124e72388abe0",
+        "version" : "6.4.1"
       }
     },
     {
@@ -41,8 +41,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/soto-project/soto-s3-file-transfer.git",
       "state" : {
-        "revision" : "f64a4382400d750ef2ae4a9e0aa471f4234403a0",
-        "version" : "1.1.0"
+        "revision" : "78d655d4f811026dce90f065d5aa88946d7a1b1e",
+        "version" : "1.2.0"
       }
     },
     {
