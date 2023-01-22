@@ -24,7 +24,7 @@ Mappings:
       OutputBucket1: spi-scratch
       OutputBucket2: spi-dev-docs
     prod:
-      Arch: x86_64
+      Arch: arm64
       InboxBucket: spi-docs-inbox
       OutputBucket1: spi-dev-docs
       OutputBucket2: spi-prod-docs
