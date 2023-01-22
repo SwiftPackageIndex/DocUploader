@@ -1,9 +1,12 @@
 import Foundation
 
+import Dependencies
 import Zip
 
 
 public struct DocUploadBundle {
+
+    @Dependency(\.uuid) var uuid
 
     public struct S3Folder: Codable, Equatable {
         public var bucket: String
@@ -48,7 +51,7 @@ public struct DocUploadBundle {
     }
 
     var archiveName: String {
-        "\(repository.owner)-\(repository.name)-\(reference).zip".lowercased()
+        "\(repository.owner)-\(repository.name)-\(reference)-\(self.uuid().firstSegment).zip".lowercased()
     }
 
     public init(sourcePath: String, bucket: String, repository: Repository, reference: String) {
@@ -84,4 +87,11 @@ public struct DocUploadBundle {
         return try JSONDecoder().decode(Metadata.self, from: data)
     }
 
+}
+
+
+private extension UUID {
+    var firstSegment: String {
+        uuidString.components(separatedBy: "-").first!.lowercased()
+    }
 }
