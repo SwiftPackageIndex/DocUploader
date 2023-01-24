@@ -14,13 +14,22 @@
 
 import Foundation
 
+#if swift(>=5.6)
+// Swift5.5Tests need to run with Swift 5.5 but swift-dependencies has tools-version 5.6
 import Dependencies
+#endif
 import Zip
 
 
 public struct DocUploadBundle {
 
+
+#if swift(>=5.6)
+    // Swift5.5Tests need to run with Swift 5.5 but swift-dependencies has tools-version 5.6
     @Dependency(\.uuid) var uuid
+#else
+    let uuid = { UUID() }
+#endif
 
     public struct S3Folder: Codable, Equatable {
         public var bucket: String
@@ -53,6 +62,7 @@ public struct DocUploadBundle {
     var bucket: String
     var repository: Repository
     var reference: String
+    var env: String
 
     public var s3Folder: S3Folder {
         .init(bucket: bucket,
@@ -65,7 +75,7 @@ public struct DocUploadBundle {
     }
 
     var archiveName: String {
-        "\(repository.owner)-\(repository.name)-\(reference)-\(self.uuid().firstSegment).zip".lowercased()
+        "\(env)-\(repository.owner)-\(repository.name)-\(reference)-\(self.uuid().firstSegment).zip".lowercased()
     }
 
     public init(sourcePath: String, bucket: String, repository: Repository, reference: String) {
@@ -73,6 +83,7 @@ public struct DocUploadBundle {
         self.bucket = bucket
         self.repository = repository
         self.reference = reference
+        self.env = bucket.droppingSPIPrefix().droppingDocsSuffix()
     }
 
     public func zip(to workDir: String) throws -> String {
@@ -107,5 +118,23 @@ public struct DocUploadBundle {
 private extension UUID {
     var firstSegment: String {
         uuidString.components(separatedBy: "-").first!.lowercased()
+    }
+}
+
+
+private extension String {
+    func droppingSPIPrefix() -> String {
+        let prefix = "spi-"
+        if lowercased().hasPrefix(prefix) {
+            return String(dropFirst(prefix.count))
+        }
+        return self
+    }
+    func droppingDocsSuffix() -> String {
+        let suffix = "-docs"
+        if lowercased().hasSuffix(suffix) {
+            return String(dropLast(suffix.count))
+        }
+        return self
     }
 }

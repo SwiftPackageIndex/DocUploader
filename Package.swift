@@ -17,11 +17,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "spi-doc-uploader",
+    name: "DocUploader",
     platforms: [.macOS(.v12)],
     products: [
         .executable(name: "doc-uploader", targets: ["Executable"]),
-        .library(name: "DocUploaderBundle", targets: ["DocUploaderBundle"])
+        .library(name: "DocUploadBundle", targets: ["DocUploadBundle"])
     ],
     dependencies: [
         .package(url: "https://github.com/swift-server/swift-aws-lambda-events.git", branch: "main"),
@@ -33,15 +33,15 @@ let package = Package(
     targets: [
         .executableTarget(name: "Executable", dependencies: ["DocUploader"]),
         .target(name: "DocUploader", dependencies: [
-            "DocUploaderBundle",
+            "DocUploadBundle",
             .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-events"),
             .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
             .product(name: "SotoS3FileTransfer", package: "soto-s3-file-transfer"),
         ]),
-        .target(name: "DocUploaderBundle", dependencies: [
+        .target(name: "DocUploadBundle", dependencies: [
             .product(name: "Zip", package: "Zip"),
             .product(name: "Dependencies", package: "swift-dependencies")
         ]),
-        .testTarget(name: "DocUploaderBundleTests", dependencies: ["DocUploaderBundle"]),
+        .testTarget(name: "DocUploadBundleTests", dependencies: ["DocUploadBundle"]),
     ]
 )

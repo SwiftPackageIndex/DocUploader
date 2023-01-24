@@ -17,7 +17,7 @@ import Foundation
 import AsyncHTTPClient
 import AWSLambdaEvents
 import AWSLambdaRuntime
-import DocUploaderBundle
+import DocUploadBundle
 import SotoS3
 
 

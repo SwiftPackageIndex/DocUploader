@@ -14,27 +14,27 @@
 
 import XCTest
 
-@testable import DocUploaderBundle
+@testable import DocUploadBundle
 
 import Dependencies
 
 
-final class DocUploaderBundleTests: XCTestCase {
+final class DocUploadBundleTests: XCTestCase {
 
     func test_init() throws {
         let bundle = withDependencies {
             $0.uuid = .constant(UUID(uuidString: "cafecafe-cafe-cafe-cafe-cafecafecafe")!)
         } operation: {
-            DocUploadBundle(sourcePath: "/foo/bar/owner/name/develop",
-                            bucket: "some-bucket",
+            DocUploadBundle(sourcePath: "/foo/bar/owner/name/branch",
+                            bucket: "spi-prod-docs",
                             repository: .init(owner: "Owner", name: "Name"),
-                            reference: "Develop")
+                            reference: "Branch")
         }
-        XCTAssertEqual(bundle.archiveName, "owner-name-develop-cafecafe.zip")
+        XCTAssertEqual(bundle.archiveName, "prod-owner-name-branch-cafecafe.zip")
         XCTAssertEqual(bundle.metadata,
-                       .init(sourcePath: "develop", targetFolder: bundle.s3Folder))
+                       .init(sourcePath: "branch", targetFolder: bundle.s3Folder))
         XCTAssertEqual(bundle.s3Folder,
-                       .init(bucket: "some-bucket", path: "owner/name/develop"))
+                       .init(bucket: "spi-prod-docs", path: "owner/name/branch"))
     }
 
 }
