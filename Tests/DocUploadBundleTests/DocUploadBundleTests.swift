@@ -14,12 +14,12 @@
 
 import XCTest
 
-@testable import DocUploaderBundle
+@testable import DocUploadBundle
 
 import Dependencies
 
 
-final class DocUploaderBundleTests: XCTestCase {
+final class DocUploadBundleTests: XCTestCase {
 
     func test_init() throws {
         let bundle = withDependencies {
