@@ -14,13 +14,22 @@
 
 import Foundation
 
+#if swift(>=5.6)
+// Swift5.5Tests need to run with Swift 5.5 but swift-dependencies has tools-version 5.6
 import Dependencies
+#endif
 import Zip
 
 
 public struct DocUploadBundle {
 
+
+#if swift(>=5.6)
+    // Swift5.5Tests need to run with Swift 5.5 but swift-dependencies has tools-version 5.6
     @Dependency(\.uuid) var uuid
+#else
+    let uuid = { UUID() }
+#endif
 
     public struct S3Folder: Codable, Equatable {
         public var bucket: String
