@@ -59,7 +59,9 @@ Resources:
       CodeUri: ./.lambda/doc-uploader/lambda.zip
       Handler: "haha"
       Runtime: provided.al2
-      MemorySize: 2048
+      # https://www.sentiatechblog.com/aws-re-invent-2020-day-3-optimizing-lambda-cost-with-multi-threading
+      # (3009 causes error on deployment)
+      MemorySize: 3008
       EphemeralStorage:
         Size: 2048
       Policies:
