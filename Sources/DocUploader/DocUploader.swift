@@ -30,7 +30,7 @@ public struct DocUploader: LambdaHandler {
             eventLoopGroupProvider: .shared(context.eventLoop),
             configuration: .init(connectionPool: .init(
                 idleTimeout: .seconds(60),
-                concurrentHTTP1ConnectionsPerHostSoftLimit: 32)
+                concurrentHTTP1ConnectionsPerHostSoftLimit: 64)
             )
         )
         context.terminator.register(name: "awsclient") { eventLoop in
