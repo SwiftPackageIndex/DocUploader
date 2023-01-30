@@ -14,9 +14,9 @@
 
 import Foundation
 
-import AsyncHTTPClient
 import AWSLambdaEvents
 import AWSLambdaRuntime
+import AsyncHTTPClient
 import DocUploadBundle
 import SotoS3
 
@@ -66,6 +66,13 @@ public struct DocUploader: LambdaHandler {
     public func handle(_ event: S3Event, context: LambdaContext) async throws {
         let logger = context.logger
         logger.info("Lambda version: \(LambdaVersion)")
+        if let logGroup = ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_GROUP_NAME"],
+           let logStream = ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_STREAM_NAME"] {
+            logger.info("Log group: \(logGroup)")
+            logger.info("Log stream: \(logStream)")
+        } else {
+            logger.warning("At least one AWS_LAMBDA_LOG... env variable undefined")
+        }
 
         guard !event.records.isEmpty else {
             throw Error(message: "no records")
