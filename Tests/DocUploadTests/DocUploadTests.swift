@@ -15,11 +15,12 @@
 import XCTest
 
 @testable import DocUploadBundle
+@testable import DocUploader
 
 import Dependencies
 
 
-final class DocUploadBundleTests: XCTestCase {
+final class DocUploadTests: XCTestCase {
 
     func test_init() throws {
         let bundle = withDependencies {
@@ -35,6 +36,16 @@ final class DocUploadBundleTests: XCTestCase {
                        .init(sourcePath: "branch", targetFolder: bundle.s3Folder))
         XCTAssertEqual(bundle.s3Folder,
                        .init(bucket: "spi-prod-docs", path: "owner/name/branch"))
+    }
+
+    func test_logUrl() throws {
+        let logURL = DocUploader
+            .logURL(region: "us-east-2",
+                    logGroup: "/aws/lambda/DocUploaderLambda-Test-UploadFunction-3D3w0QTh1l6H",
+                    logStream: "2023/01/30/[$LATEST]3ecb4050574245699b3db785b07142f2")
+
+        XCTAssertEqual(logURL,
+                       "https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#logsV2:log-groups/log-group/$252Faws$252Flambda$252FDocUploaderLambda-Test-UploadFunction-3D3w0QTh1l6H/log-events/2023$252F01$252F30$252F$255B$2524LATEST$255D3ecb4050574245699b3db785b07142f2")
     }
 
 }

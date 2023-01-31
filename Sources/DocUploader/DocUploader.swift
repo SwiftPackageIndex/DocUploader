@@ -67,12 +67,18 @@ public struct DocUploader: LambdaHandler {
         let logger = context.logger
         logger.info("Lambda version: \(LambdaVersion)")
         if let logGroup = ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_GROUP_NAME"],
-           let logStream = ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_STREAM_NAME"] {
+           let logStream = ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_STREAM_NAME"],
+           let region = ProcessInfo.processInfo.environment["AWS_REGION"] {
+            logger.info("Region: \(region)")
             logger.info("Log group: \(logGroup)")
             logger.info("Log stream: \(logStream)")
         } else {
             logger.warning("At least one AWS_LAMBDA_LOG... env variable undefined")
         }
+        let logURL = Self
+            .logURL(region: ProcessInfo.processInfo.environment["AWS_REGION"],
+                    logGroup: ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_GROUP_NAME"],
+                    logStream: ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_STREAM_NAME"])
 
         guard !event.records.isEmpty else {
             throw Error(message: "no records")
@@ -156,6 +162,18 @@ public struct DocUploader: LambdaHandler {
             }
         }
     }
+
+    public static func logURL(region: String?, logGroup: String?, logStream: String?) -> String? {
+        guard let region = region,
+              let group = logGroup,
+              let stream = logStream else { return nil }
+        return "https://\(region).console.aws.amazon.com/cloudwatch/home?" +
+        "region=\(region)" +
+        "#logsV2:log-groups/log-group/" +
+        group.awsEncoded +
+        "/log-events/" +
+        stream.awsEncoded
+    }
 }
 
 
@@ -171,6 +189,24 @@ private extension String {
         } else {
             return self
         }
+    }
+}
+
+private extension String {
+    static let replacements = [
+        // keep "$" first, so it doesn't replace the "$" in the following substitutions
+        ("$", "$2524"),
+        ("/", "$252F"),
+        ("[", "$255B"),
+        ("]", "$255D")
+    ]
+
+    var awsEncoded: String {
+        var result = self
+        for (key, value) in Self.replacements {
+            result = result.replacingOccurrences(of: key, with: value)
+        }
+        return result
     }
 }
 
