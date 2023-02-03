@@ -34,7 +34,7 @@ enum DocReport {
         var status: Status
     }
 
-    static func request(apiBaseURL: String, apiToken: String, buildId: String, dto: PostDocReportDTO) throws -> HTTPClientRequest {
+    static func request(apiBaseURL: String, apiToken: String, buildId: UUID, dto: PostDocReportDTO) throws -> HTTPClientRequest {
         let baseURL = apiBaseURL.ensuringSchemePrefix.ensuringAPISuffix
         var req = HTTPClientRequest(url: "\(baseURL)/builds/\(buildId)/doc-report")
         req.method = .POST
@@ -45,7 +45,7 @@ enum DocReport {
         return req
     }
 
-    static func reportResult(client: HTTPClient, apiBaseURL: String, apiToken: String, buildId: String, dto: PostDocReportDTO) async throws -> HTTPResponseStatus {
+    static func reportResult(client: HTTPClient, apiBaseURL: String, apiToken: String, buildId: UUID, dto: PostDocReportDTO) async throws -> HTTPResponseStatus {
         let req = try request(apiBaseURL: apiBaseURL, apiToken: apiToken, buildId: buildId, dto: dto)
         let res = try await client.execute(req, timeout: .seconds(10))
         return res.status
