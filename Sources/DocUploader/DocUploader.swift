@@ -67,86 +67,57 @@ public struct DocUploader: LambdaHandler {
         let logger = context.logger
         logger.info("Lambda version: \(LambdaVersion)")
 
-        guard !event.records.isEmpty else {
-            throw Error(message: "no records")
-        }
-
         if event.records.count > 1 {
             logger.warning("Number of records: \(event.records)")
         } else {
             logger.info("Number of records: \(event.records)")
         }
 
-        var errors = [Swift.Error]()
-
-        for record in event.records {
-            let bucketName = record.s3.bucket.name
-            let objectKey = record.s3.object.key
-            let s3Key = S3Key(bucketName: bucketName, objectKey: objectKey)
-            logger.info("file: \(s3Key.url)")
-            logger.info("record: \(record)")
-
-            do {
-                try await run {
-                    // FIXME: add a report back stage
-
-                    let outputPath = "/tmp"
-                    do {
-                        logger.info("Copying \(s3Key.url) to \(outputPath)...")
-                        try await Current.s3Client.loadFile(client: awsClient,
-                                                            logger: logger,
-                                                            from: s3Key,
-                                                            to: outputPath)
-                        logger.info("✅ Completed copying \(s3Key.url)")
-                    }
-
-                    let metadata: DocUploadBundle.Metadata
-                    do {
-                        let zipFileName = "\(outputPath)/\(objectKey)"
-                        logger.info("Unzipping \(zipFileName)")
-                        var fileIndex = 0
-                        metadata = try DocUploadBundle.unzip(bundle: zipFileName,
-                                                             outputPath: outputPath) { path in
-                            defer { fileIndex += 1 }
-                            if fileIndex % 5000 == 0 {
-                                logger.info("... [\(fileIndex)] - \(path.lastPathComponent)")
-                            }
-                        }
-                        logger.info("✅ Completed unzipping \(zipFileName)")
-                    }
-
-                    try await Retry.repeatedly("Syncing ...", logger: logger, interval: 1) {
-                        do {
-                            let syncPath = "\(outputPath)/\(metadata.sourcePath)"
-                            logger.info("Syncing \(syncPath) to \(metadata.targetFolder.s3Key)...")
-                            try await Current.s3Client.sync(client: awsClient,
-                                                            logger: logger,
-                                                            from: syncPath,
-                                                            to: metadata.targetFolder.s3Key)
-                            logger.info("✅ Completed syncing \(syncPath)")
-                            return .success
-                        } catch {
-                            logger.error("\(error)")
-                        }
-                        return .failure
-                    }
-                } defer: {
-                    // try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
-                }
-            } catch {
-                // Track any errors but continue on to attempt to process all events.
-                logger.error("\(error)")
-                errors.append(error)
-            }
+        guard let record = event.records.first else {
+            throw Error(message: "no records")
         }
 
-        // Raise any errors we encountered.
-        guard errors.isEmpty else {
-            if errors.count == 1 {
-                throw errors.first!
-            } else {
-                throw Error(message: "Encountered \(errors.count) errors (see logs for details)")
+        let s3Key = S3Key(bucketName: record.s3.bucket.name, objectKey: record.s3.object.key)
+        logger.info("file: \(s3Key.url)")
+        logger.info("record: \(record)")
+
+        try await run {
+            let outputPath = "/tmp"
+            do {
+                logger.info("Copying \(s3Key.url) to \(outputPath)...")
+                try await Current.s3Client.loadFile(client: awsClient,
+                                                    logger: logger,
+                                                    from: s3Key,
+                                                    to: outputPath)
+                logger.info("✅ Completed copying \(s3Key.url)")
             }
+
+            let metadata: DocUploadBundle.Metadata
+            do {
+                let zipFileName = "\(outputPath)/\(s3Key.objectKey)"
+                logger.info("Unzipping \(zipFileName)")
+                var fileIndex = 0
+                metadata = try DocUploadBundle.unzip(bundle: zipFileName,
+                                                     outputPath: outputPath) { path in
+                    defer { fileIndex += 1 }
+                    if fileIndex % 5000 == 0 {
+                        logger.info("... [\(fileIndex)] - \(path.lastPathComponent)")
+                    }
+                }
+                logger.info("✅ Completed unzipping \(zipFileName)")
+            }
+
+            do {
+                let syncPath = "\(outputPath)/\(metadata.sourcePath)"
+                logger.info("Syncing \(syncPath) to \(metadata.targetFolder.s3Key)...")
+                try await Current.s3Client.sync(client: awsClient,
+                                                logger: logger,
+                                                from: syncPath,
+                                                to: metadata.targetFolder.s3Key)
+                logger.info("✅ Completed syncing \(syncPath)")
+            }
+        } defer: {
+            // try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
         }
     }
 
