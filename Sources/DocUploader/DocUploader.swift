@@ -118,30 +118,24 @@ public struct DocUploader: LambdaHandler {
             }
 
             do {
-                if let apiBaseURL = metadata.apiBaseURL,
-                   let apiToken = metadata.apiToken,
-                   let buildId = metadata.buildId {
-                    try await Retry.repeatedly("Sending result", logger: logger) {
-                        do {
-                            let status = try await DocReport.reportResult(
-                                client: httpClient,
-                                apiBaseURL: apiBaseURL,
-                                apiToken: apiToken,
-                                buildId: buildId,
-                                // FIXME: fill in values
-                                dto: .init(error: nil,
-                                           fileCount: metadata.fileCount,
-                                           logUrl: nil,
-                                           mbSize: metadata.mbSize,
-                                           status: .ok)
-                            )
-                        } catch {
-                            logger.error("\(error)")
-                        }
-                        return .failure
+                try await Retry.repeatedly("Sending result", logger: logger) {
+                    do {
+                        let status = try await DocReport.reportResult(
+                            client: httpClient,
+                            apiBaseURL: metadata.apiBaseURL,
+                            apiToken: metadata.apiToken,
+                            buildId: metadata.buildId,
+                            // FIXME: fill in values
+                            dto: .init(error: nil,
+                                       fileCount: metadata.fileCount,
+                                       logUrl: nil,
+                                       mbSize: metadata.mbSize,
+                                       status: .ok)
+                        )
+                    } catch {
+                        logger.error("\(error)")
                     }
-                } else {
-                    logger.error("Metadata incomplete (missing API base url, API token, or build ID)")
+                    return .failure
                 }
             }
         } defer: {

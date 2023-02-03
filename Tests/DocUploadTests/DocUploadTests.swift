@@ -23,17 +23,31 @@ import Dependencies
 final class DocUploadTests: XCTestCase {
 
     func test_init() throws {
+        let cafe = UUID(uuidString: "cafecafe-cafe-cafe-cafe-cafecafecafe")!
         let bundle = withDependencies {
-            $0.uuid = .constant(UUID(uuidString: "cafecafe-cafe-cafe-cafe-cafecafecafe")!)
+            $0.uuid = .constant(cafe)
         } operation: {
             DocUploadBundle(sourcePath: "/foo/bar/owner/name/branch",
                             bucket: "spi-prod-docs",
                             repository: .init(owner: "Owner", name: "Name"),
-                            reference: "Branch")
+                            reference: "Branch",
+                            apiBaseURL: "baseURL",
+                            apiToken: "token",
+                            buildId: cafe,
+                            fileCount: 123,
+                            mbSize: 456)
         }
         XCTAssertEqual(bundle.archiveName, "prod-owner-name-branch-cafecafe.zip")
         XCTAssertEqual(bundle.metadata,
-                       .init(sourcePath: "branch", targetFolder: bundle.s3Folder))
+                       .init(
+                           apiBaseURL: "baseURL",
+                           apiToken: "token",
+                           buildId: cafe,
+                           fileCount: 123,
+                           mbSize: 456,
+                           sourcePath: "branch",
+                           targetFolder: bundle.s3Folder)
+                       )
         XCTAssertEqual(bundle.s3Folder,
                        .init(bucket: "spi-prod-docs", path: "owner/name/branch"))
     }
