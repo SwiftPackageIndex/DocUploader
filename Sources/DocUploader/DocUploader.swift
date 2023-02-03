@@ -116,6 +116,34 @@ public struct DocUploader: LambdaHandler {
                                                 to: metadata.targetFolder.s3Key)
                 logger.info("✅ Completed syncing \(syncPath)")
             }
+
+            do {
+                if let apiBaseURL = metadata.apiBaseURL,
+                   let apiToken = metadata.apiToken,
+                   let buildId = metadata.buildId {
+                    try await Retry.repeatedly("Sending result", logger: logger) {
+                        do {
+                            let status = try await DocReport.reportResult(
+                                client: httpClient,
+                                apiBaseURL: apiBaseURL,
+                                apiToken: apiToken,
+                                buildId: buildId,
+                                // FIXME: fill in values
+                                dto: .init(error: nil,
+                                           fileCount: metadata.fileCount,
+                                           logUrl: nil,
+                                           mbSize: metadata.mbSize,
+                                           status: .ok)
+                            )
+                        } catch {
+                            logger.error("\(error)")
+                        }
+                        return .failure
+                    }
+                } else {
+                    logger.error("Metadata incomplete (missing API base url, API token, or build ID)")
+                }
+            }
         } defer: {
             // try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
         }
