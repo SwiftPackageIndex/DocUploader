@@ -66,19 +66,6 @@ public struct DocUploader: LambdaHandler {
     public func handle(_ event: S3Event, context: LambdaContext) async throws {
         let logger = context.logger
         logger.info("Lambda version: \(LambdaVersion)")
-        if let logGroup = ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_GROUP_NAME"],
-           let logStream = ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_STREAM_NAME"],
-           let region = ProcessInfo.processInfo.environment["AWS_REGION"] {
-            logger.info("Region: \(region)")
-            logger.info("Log group: \(logGroup)")
-            logger.info("Log stream: \(logStream)")
-        } else {
-            logger.warning("At least one AWS_LAMBDA_LOG... env variable undefined")
-        }
-        let logURL = Self
-            .logURL(region: ProcessInfo.processInfo.environment["AWS_REGION"],
-                    logGroup: ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_GROUP_NAME"],
-                    logStream: ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_STREAM_NAME"])
 
         guard !event.records.isEmpty else {
             throw Error(message: "no records")
