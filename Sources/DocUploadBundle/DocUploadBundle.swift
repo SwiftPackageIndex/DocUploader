@@ -23,7 +23,6 @@ import Zip
 
 public struct DocUploadBundle {
 
-
 #if swift(>=5.6)
     // Swift5.5Tests need to run with Swift 5.5 but swift-dependencies has tools-version 5.6
     @Dependency(\.uuid) var uuid
@@ -53,14 +52,12 @@ public struct DocUploadBundle {
 
     public struct Metadata: Codable, Equatable {
         // TODO: make non-optional
-        /// Base url for doc reporting API call
         public var apiBaseURL: String?
-        // TODO: make non-optional
-        /// API access token for doc reporting call
         public var apiToken: String?
-        // TODO: make non-optional
-        /// Build ID to report doc result to.
         public var buildId: UUID?
+        public var fileCount: Int?
+        public var mbSize: Int?
+        // TODO: ^^^^^^
         /// Basename of the doc set source directory after unzipping. The value will be the source code revision, e.g. "1.2.3" or "main".
         public var sourcePath: String
         /// Target folder where the doc set will be synced to in S3.
