@@ -107,34 +107,44 @@ public struct DocUploader: LambdaHandler {
                 logger.info("✅ Completed unzipping \(zipFileName)")
             }
 
-            do {
-                let syncPath = "\(outputPath)/\(metadata.sourcePath)"
-                logger.info("Syncing \(syncPath) to \(metadata.targetFolder.s3Key)...")
-                try await Current.s3Client.sync(client: awsClient,
-                                                logger: logger,
-                                                from: syncPath,
-                                                to: metadata.targetFolder.s3Key)
-                logger.info("✅ Completed syncing \(syncPath)")
+            try await Retry.repeatedly("Syncing ...", logger: logger) {
+                do {
+                    let syncPath = "\(outputPath)/\(metadata.sourcePath)"
+                    logger.info("Syncing \(syncPath) to \(metadata.targetFolder.s3Key)...")
+                    try await Current.s3Client.sync(client: awsClient,
+                                                    logger: logger,
+                                                    from: syncPath,
+                                                    to: metadata.targetFolder.s3Key)
+                    logger.info("✅ Completed syncing \(syncPath)")
+                    return .success
+                } catch {
+                    logger.error("\(error)")
+                    return .failure
+                }
             }
 
-            do {
-                try await Retry.repeatedly("Sending result", logger: logger) {
-                    do {
-                        let status = try await DocReport.reportResult(
-                            client: httpClient,
-                            apiBaseURL: metadata.apiBaseURL,
-                            apiToken: metadata.apiToken,
-                            buildId: metadata.buildId,
-                            // FIXME: fill in values
-                            dto: .init(error: nil,
-                                       fileCount: metadata.fileCount,
-                                       logUrl: nil,
-                                       mbSize: metadata.mbSize,
-                                       status: .ok)
-                        )
-                    } catch {
-                        logger.error("\(error)")
+            try await Retry.repeatedly("Sending doc result ...", logger: logger) {
+                do {
+                    let status = try await DocReport.reportResult(
+                        client: httpClient,
+                        apiBaseURL: metadata.apiBaseURL,
+                        apiToken: metadata.apiToken,
+                        buildId: metadata.buildId,
+                        // FIXME: fill in values
+                        dto: .init(error: nil,
+                                   fileCount: metadata.fileCount,
+                                   logUrl: nil,
+                                   mbSize: metadata.mbSize,
+                                   status: .ok)
+                    )
+                    switch status.code {
+                        case 200..<299:
+                            return .success
+                        default:
+                            return .failure
                     }
+                } catch {
+                    logger.error("\(error)")
                     return .failure
                 }
             }

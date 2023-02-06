@@ -19,7 +19,7 @@ import Logging
 
 
 enum Retry {
-    static func delay(retryCount: Int, interval: TimeInterval = 5) -> UInt32 {
+    static func delay(retryCount: Int, interval: TimeInterval = 1) -> UInt32 {
         (pow(2, max(0, retryCount - 1)) * Decimal(interval) as NSDecimalNumber).uint32Value
     }
 
@@ -32,7 +32,7 @@ enum Retry {
         case timeout
     }
 
-    static func repeatedly(_ label: String, logger: Logger, retries: Int = 5, interval: TimeInterval = 5, _ block: () async throws -> Result) async throws {
+    static func repeatedly(_ label: String, logger: Logger, retries: Int = 1, interval: TimeInterval = 5, _ block: () async throws -> Result) async throws {
         var currentTry = 1
         while currentTry <= retries {
             logger.info("\(label) (attempt \(currentTry))")
