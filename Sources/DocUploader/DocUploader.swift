@@ -22,6 +22,7 @@ import SotoS3
 
 
 public struct DocUploader: LambdaHandler {
+
     let httpClient: HTTPClient
     let awsClient: AWSClient
 
@@ -83,6 +84,7 @@ public struct DocUploader: LambdaHandler {
 
         try await run {
             let outputPath = "/tmp"
+
             do {
                 logger.info("Copying \(s3Key.url) to \(outputPath)...")
                 try await Current.s3Client.loadFile(client: awsClient,
@@ -107,20 +109,26 @@ public struct DocUploader: LambdaHandler {
                 logger.info("✅ Completed unzipping \(zipFileName)")
             }
 
-            try await Retry.repeatedly("Syncing ...", logger: logger) {
-                do {
-                    let syncPath = "\(outputPath)/\(metadata.sourcePath)"
-                    logger.info("Syncing \(syncPath) to \(metadata.targetFolder.s3Key)...")
-                    try await Current.s3Client.sync(client: awsClient,
-                                                    logger: logger,
-                                                    from: syncPath,
-                                                    to: metadata.targetFolder.s3Key)
-                    logger.info("✅ Completed syncing \(syncPath)")
-                    return .success
-                } catch {
-                    logger.error("\(error)")
-                    return .failure
+            let result: Result
+            do {
+                try await Retry.repeatedly("Syncing ...", logger: logger) {
+                    do {
+                        let syncPath = "\(outputPath)/\(metadata.sourcePath)"
+                        logger.info("Syncing \(syncPath) to \(metadata.targetFolder.s3Key)...")
+                        try await Current.s3Client.sync(client: awsClient,
+                                                        logger: logger,
+                                                        from: syncPath,
+                                                        to: metadata.targetFolder.s3Key)
+                        logger.info("✅ Completed syncing \(syncPath)")
+                        return .success
+                    } catch {
+                        logger.error("\(error)")
+                        return .failure
+                    }
                 }
+                result = .success
+            } catch {
+                result = .failure(error: error.localizedDescription)
             }
 
             try await Retry.repeatedly("Sending doc result ...", logger: logger) {
@@ -130,12 +138,11 @@ public struct DocUploader: LambdaHandler {
                         apiBaseURL: metadata.apiBaseURL,
                         apiToken: metadata.apiToken,
                         buildId: metadata.buildId,
-                        // FIXME: fill in values
-                        dto: .init(error: nil,
+                        dto: .init(error: result.error,
                                    fileCount: metadata.fileCount,
-                                   logUrl: nil,
+                                   logUrl: Self.logURL(),
                                    mbSize: metadata.mbSize,
-                                   status: .ok)
+                                   status: result.status)
                     )
                     switch status.code {
                         case 200..<299:
@@ -153,7 +160,7 @@ public struct DocUploader: LambdaHandler {
         }
     }
 
-    public static func logURL(region: String?, logGroup: String?, logStream: String?) -> String? {
+    static func logURL(region: String?, logGroup: String?, logStream: String?) -> String? {
         guard let region = region,
               let group = logGroup,
               let stream = logStream else { return nil }
@@ -164,6 +171,38 @@ public struct DocUploader: LambdaHandler {
         "/log-events/" +
         stream.awsEncoded
     }
+
+    static func logURL() -> String? {
+        guard let group = ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_GROUP_NAME"],
+              let stream = ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_STREAM_NAME"],
+              let region = ProcessInfo.processInfo.environment["AWS_REGION"]
+        else { return nil }
+        return logURL(region: region, logGroup: group, logStream: stream)
+    }
+
+    enum Result {
+        case success
+        case failure(error: String)
+
+        var error: String? {
+            switch self {
+                case .success:
+                    return nil
+                case .failure(let failure):
+                    return failure
+            }
+        }
+
+        var status: DocReport.Status {
+            switch self {
+                case .success:
+                    return .ok
+                case .failure:
+                    return .failed
+            }
+        }
+    }
+
 }
 
 
