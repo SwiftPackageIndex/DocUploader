@@ -221,6 +221,7 @@ private extension String {
     }
 }
 
+
 private extension String {
     static let replacements = [
         // keep "$" first, so it doesn't replace the "$" in the following substitutions
