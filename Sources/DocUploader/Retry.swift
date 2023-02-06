@@ -32,7 +32,7 @@ enum Retry {
         case timeout
     }
 
-    static func repeatedly(_ label: String, logger: Logger, retries: Int = 1, interval: TimeInterval = 5, _ block: () async throws -> Result) async throws {
+    static func repeatedly(_ label: String, logger: Logger, retries: Int = 5, interval: TimeInterval = 1, _ block: () async throws -> Result) async throws {
         var currentTry = 1
         while currentTry <= retries {
             logger.info("\(label) (attempt \(currentTry))")
