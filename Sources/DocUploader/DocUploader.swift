@@ -128,7 +128,7 @@ public struct DocUploader: LambdaHandler {
                 }
                 result = .success
             } catch {
-                result = .failure(error: error.localizedDescription)
+                result = .failure(error: "\(error)")
             }
 
             try await Retry.repeatedly("Sending doc result ...", logger: logger) {
