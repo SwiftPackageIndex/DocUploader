@@ -15,10 +15,13 @@
 import Foundation
 
 import AsyncHTTPClient
+import Dependencies
 import NIOHTTP1
 
 
 enum DocReport {
+
+    @Dependency(\.httpClient) static var httpClient: HTTPExecutor
 
     enum Status: String, Codable {
         case ok
@@ -47,7 +50,7 @@ enum DocReport {
 
     static func reportResult(client: HTTPClient, apiBaseURL: String, apiToken: String, buildId: UUID, dto: PostDocReportDTO) async throws -> HTTPResponseStatus {
         let req = try request(apiBaseURL: apiBaseURL, apiToken: apiToken, buildId: buildId, dto: dto)
-        let res = try await client.execute(req, timeout: .seconds(10))
+        let res = try await httpClient.execute(client, req, timeout: .seconds(10))
         return res.status
     }
 

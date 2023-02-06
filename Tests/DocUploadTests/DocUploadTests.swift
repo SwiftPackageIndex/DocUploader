@@ -17,6 +17,7 @@ import XCTest
 @testable import DocUploadBundle
 @testable import DocUploader
 
+import AsyncHTTPClient
 import Dependencies
 
 
@@ -60,6 +61,42 @@ final class DocUploadTests: XCTestCase {
 
         XCTAssertEqual(logURL,
                        "https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#logsV2:log-groups/log-group/$252Faws$252Flambda$252FDocUploaderLambda-Test-UploadFunction-3D3w0QTh1l6H/log-events/2023$252F01$252F30$252F$255B$2524LATEST$255D3ecb4050574245699b3db785b07142f2")
+    }
+
+    func test_reportResult() async throws {
+        var request: HTTPClientRequest?
+        try await withDependencies {
+            $0.httpClient.execute = { _, req, _ in
+                request = req
+                return .init(status: .noContent)
+            }
+        } operation: {
+            let client = HTTPClient(eventLoopGroupProvider: .createNew)
+            defer { try? client.syncShutdown() }
+            let status = try await DocReport.reportResult(
+                client: client,
+                apiBaseURL: "http://localhost:8080/api",
+                apiToken: "builder-token",
+                buildId: UUID(uuidString: "f6ab0ddb-2540-4613-b087-ed55474f6b16")!,
+                dto: .init(error: "too big",
+                           fileCount: 1_234,
+                           logUrl: "log url 1",
+                           mbSize: 123,
+                           status: .skipped))
+            XCTAssertEqual(status, .noContent)
+        }
+        XCTAssertEqual(
+            request?.url,
+            "http://localhost:8080/api/builds/F6AB0DDB-2540-4613-B087-ED55474F6B16/doc-report"
+        )
+        XCTAssertEqual(
+            request?.headers.first(name: "Authorization"),
+            "Bearer builder-token"
+        )
+        XCTAssertEqual(
+            request?.headers.first(name: "Content-Type"),
+            "application/json"
+        )
     }
 
 }
