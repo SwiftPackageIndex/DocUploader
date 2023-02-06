@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import NIO
 import SotoS3
 import SotoS3FileTransfer
 
@@ -42,9 +43,17 @@ struct LiveS3Client: S3Client {
                     region: .useast2,
                     timeout: .seconds(60),
                     options: .s3DisableChunkedUploads)
+
+        let threadPool = NIOThreadPool(numberOfThreads: 8)
+        defer { threadPool.shutdownGracefully { _ in } }
+        threadPool.start()
+
         let s3FileTransfer = S3FileTransferManager(s3: s3,
-                                                   threadPoolProvider: .createNew,
-                                                   configuration: .init(maxConcurrentTasks: 12))
+                                                   threadPoolProvider: .shared(threadPool),
+                                                   configuration: .init(maxConcurrentTasks: 60))
+        defer {
+            try? s3FileTransfer.syncShutdown()
+        }
 
         guard let s3Folder = S3Folder(url: key.url) else {
             throw Error(message: "Invalid key: \(key)")

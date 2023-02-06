@@ -29,3 +29,7 @@ Subsequently, run either `make deploy-test` or `make deploy-prod` to deploy into
 ```
 make deploy-test
 ```
+
+## Lambda operation notes
+
+https://docs.aws.amazon.com/lambda/latest/operatorguide/computing-power.html
