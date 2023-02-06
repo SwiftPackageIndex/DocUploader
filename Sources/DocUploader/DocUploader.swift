@@ -14,14 +14,15 @@
 
 import Foundation
 
-import AsyncHTTPClient
 import AWSLambdaEvents
 import AWSLambdaRuntime
+import AsyncHTTPClient
 import DocUploadBundle
 import SotoS3
 
 
 public struct DocUploader: LambdaHandler {
+
     let httpClient: HTTPClient
     let awsClient: AWSClient
 
@@ -67,88 +68,141 @@ public struct DocUploader: LambdaHandler {
         let logger = context.logger
         logger.info("Lambda version: \(LambdaVersion)")
 
-        guard !event.records.isEmpty else {
-            throw Error(message: "no records")
-        }
-
         if event.records.count > 1 {
             logger.warning("Number of records: \(event.records)")
         } else {
             logger.info("Number of records: \(event.records)")
         }
 
-        var errors = [Swift.Error]()
+        guard let record = event.records.first else {
+            throw Error(message: "no records")
+        }
 
-        for record in event.records {
-            let bucketName = record.s3.bucket.name
-            let objectKey = record.s3.object.key
-            let s3Key = S3Key(bucketName: bucketName, objectKey: objectKey)
-            logger.info("file: \(s3Key.url)")
-            logger.info("record: \(record)")
+        let s3Key = S3Key(bucketName: record.s3.bucket.name, objectKey: record.s3.object.key)
+        logger.info("file: \(s3Key.url)")
+        logger.info("record: \(record)")
+
+        try await run {
+            let outputPath = "/tmp"
 
             do {
-                try await run {
-                    // FIXME: add a report back stage
+                logger.info("Copying \(s3Key.url) to \(outputPath)...")
+                try await Current.s3Client.loadFile(client: awsClient,
+                                                    logger: logger,
+                                                    from: s3Key,
+                                                    to: outputPath)
+                logger.info("✅ Completed copying \(s3Key.url)")
+            }
 
-                    let outputPath = "/tmp"
-                    do {
-                        logger.info("Copying \(s3Key.url) to \(outputPath)...")
-                        try await Current.s3Client.loadFile(client: awsClient,
-                                                            logger: logger,
-                                                            from: s3Key,
-                                                            to: outputPath)
-                        logger.info("✅ Completed copying \(s3Key.url)")
+            let metadata: DocUploadBundle.Metadata
+            do {
+                let zipFileName = "\(outputPath)/\(s3Key.objectKey)"
+                logger.info("Unzipping \(zipFileName)")
+                var fileIndex = 0
+                metadata = try DocUploadBundle.unzip(bundle: zipFileName,
+                                                     outputPath: outputPath) { path in
+                    defer { fileIndex += 1 }
+                    if fileIndex % 5000 == 0 {
+                        logger.info("... [\(fileIndex)] - \(path.lastPathComponent)")
                     }
+                }
+                logger.info("✅ Completed unzipping \(zipFileName)")
+            }
 
-                    let metadata: DocUploadBundle.Metadata
+            let result: Result
+            do {
+                try await Retry.repeatedly("Syncing ...", logger: logger) {
                     do {
-                        let zipFileName = "\(outputPath)/\(objectKey)"
-                        logger.info("Unzipping \(zipFileName)")
-                        var fileIndex = 0
-                        metadata = try DocUploadBundle.unzip(bundle: zipFileName,
-                                                             outputPath: outputPath) { path in
-                            defer { fileIndex += 1 }
-                            if fileIndex % 5000 == 0 {
-                                logger.info("... [\(fileIndex)] - \(path.lastPathComponent)")
-                            }
-                        }
-                        logger.info("✅ Completed unzipping \(zipFileName)")
-                    }
-
-                    try await Retry.repeatedly("Syncing ...", logger: logger, interval: 1) {
-                        do {
-                            let syncPath = "\(outputPath)/\(metadata.sourcePath)"
-                            logger.info("Syncing \(syncPath) to \(metadata.targetFolder.s3Key)...")
-                            try await Current.s3Client.sync(client: awsClient,
-                                                            logger: logger,
-                                                            from: syncPath,
-                                                            to: metadata.targetFolder.s3Key)
-                            logger.info("✅ Completed syncing \(syncPath)")
-                            return .success
-                        } catch {
-                            logger.error("\(error)")
-                        }
+                        let syncPath = "\(outputPath)/\(metadata.sourcePath)"
+                        logger.info("Syncing \(syncPath) to \(metadata.targetFolder.s3Key)...")
+                        try await Current.s3Client.sync(client: awsClient,
+                                                        logger: logger,
+                                                        from: syncPath,
+                                                        to: metadata.targetFolder.s3Key)
+                        logger.info("✅ Completed syncing \(syncPath)")
+                        return .success
+                    } catch {
+                        logger.error("\(error)")
                         return .failure
                     }
-                } defer: {
-                    // try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
                 }
+                result = .success
             } catch {
-                // Track any errors but continue on to attempt to process all events.
-                logger.error("\(error)")
-                errors.append(error)
+                result = .failure(error: "\(error)")
+            }
+
+            try await Retry.repeatedly("Sending doc result ...", logger: logger) {
+                do {
+                    let status = try await DocReport.reportResult(
+                        client: httpClient,
+                        apiBaseURL: metadata.apiBaseURL,
+                        apiToken: metadata.apiToken,
+                        buildId: metadata.buildId,
+                        dto: .init(error: result.error,
+                                   fileCount: metadata.fileCount,
+                                   logUrl: Self.logURL(),
+                                   mbSize: metadata.mbSize,
+                                   status: result.status)
+                    )
+                    switch status.code {
+                        case 200..<299:
+                            return .success
+                        default:
+                            return .failure
+                    }
+                } catch {
+                    logger.error("\(error)")
+                    return .failure
+                }
+            }
+        } defer: {
+            // try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
+        }
+    }
+
+    static func logURL(region: String?, logGroup: String?, logStream: String?) -> String? {
+        guard let region = region,
+              let group = logGroup,
+              let stream = logStream else { return nil }
+        return "https://\(region).console.aws.amazon.com/cloudwatch/home?" +
+        "region=\(region)" +
+        "#logsV2:log-groups/log-group/" +
+        group.awsEncoded +
+        "/log-events/" +
+        stream.awsEncoded
+    }
+
+    static func logURL() -> String? {
+        guard let group = ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_GROUP_NAME"],
+              let stream = ProcessInfo.processInfo.environment["AWS_LAMBDA_LOG_STREAM_NAME"],
+              let region = ProcessInfo.processInfo.environment["AWS_REGION"]
+        else { return nil }
+        return logURL(region: region, logGroup: group, logStream: stream)
+    }
+
+    enum Result {
+        case success
+        case failure(error: String)
+
+        var error: String? {
+            switch self {
+                case .success:
+                    return nil
+                case .failure(let failure):
+                    return failure
             }
         }
 
-        // Raise any errors we encountered.
-        guard errors.isEmpty else {
-            if errors.count == 1 {
-                throw errors.first!
-            } else {
-                throw Error(message: "Encountered \(errors.count) errors (see logs for details)")
+        var status: DocReport.Status {
+            switch self {
+                case .success:
+                    return .ok
+                case .failure:
+                    return .failed
             }
         }
     }
+
 }
 
 
@@ -164,6 +218,25 @@ private extension String {
         } else {
             return self
         }
+    }
+}
+
+
+private extension String {
+    static let replacements = [
+        // keep "$" first, so it doesn't replace the "$" in the following substitutions
+        ("$", "$2524"),
+        ("/", "$252F"),
+        ("[", "$255B"),
+        ("]", "$255D")
+    ]
+
+    var awsEncoded: String {
+        var result = self
+        for (key, value) in Self.replacements {
+            result = result.replacingOccurrences(of: key, with: value)
+        }
+        return result
     }
 }
 

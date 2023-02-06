@@ -23,7 +23,6 @@ import Zip
 
 public struct DocUploadBundle {
 
-
 #if swift(>=5.6)
     // Swift5.5Tests need to run with Swift 5.5 but swift-dependencies has tools-version 5.6
     @Dependency(\.uuid) var uuid
@@ -52,38 +51,60 @@ public struct DocUploadBundle {
     }
 
     public struct Metadata: Codable, Equatable {
+        public var apiBaseURL: String
+        public var apiToken: String
+        public var buildId: UUID
+        public var fileCount: Int?
+        public var mbSize: Int?
+
         /// Basename of the doc set source directory after unzipping. The value will be the source code revision, e.g. "1.2.3" or "main".
         public var sourcePath: String
         /// Target folder where the doc set will be synced to in S3.
         public var targetFolder: S3Folder
     }
 
-    var sourcePath: String
-    var bucket: String
-    var repository: Repository
-    var reference: String
-    var env: String
+    let sourcePath: String
+    let bucket: String
+    let repository: Repository
+    let reference: String
+    let env: String
 
-    public var s3Folder: S3Folder {
-        .init(bucket: bucket,
-              path: "\(repository.owner)/\(repository.name)/\(reference)".lowercased())
-    }
-
-    var metadata: Metadata {
-        .init(sourcePath: URL(fileURLWithPath: sourcePath).lastPathComponent.lowercased(),
-              targetFolder: s3Folder)
-    }
+    public let metadata: Metadata
+    public let s3Folder: S3Folder
 
     var archiveName: String {
         "\(env)-\(repository.owner)-\(repository.name)-\(reference)-\(self.uuid().firstSegment).zip".lowercased()
     }
 
-    public init(sourcePath: String, bucket: String, repository: Repository, reference: String) {
+    public init(
+        sourcePath: String,
+        bucket: String,
+        repository: Repository,
+        reference: String,
+        apiBaseURL: String,
+        apiToken: String,
+        buildId: UUID,
+        fileCount: Int? = nil,
+        mbSize: Int? = nil
+    ) {
         self.sourcePath = sourcePath
         self.bucket = bucket
         self.repository = repository
         self.reference = reference
         self.env = bucket.droppingSPIPrefix().droppingDocsSuffix()
+        self.s3Folder = .init(
+            bucket: bucket,
+            path: "\(repository.owner)/\(repository.name)/\(reference)".lowercased()
+        )
+        self.metadata = .init(
+            apiBaseURL: apiBaseURL,
+            apiToken: apiToken,
+            buildId: buildId,
+            fileCount: fileCount,
+            mbSize: mbSize,
+            sourcePath: URL(fileURLWithPath: sourcePath).lastPathComponent.lowercased(),
+            targetFolder: s3Folder
+        )
     }
 
     public func zip(to workDir: String) throws -> String {
