@@ -115,14 +115,20 @@ public struct DocUploader: LambdaHandler {
                         logger.info("✅ Completed unzipping \(zipFileName)")
                     }
 
-                    do {
-                        let syncPath = "\(outputPath)/\(metadata.sourcePath)"
-                        logger.info("Syncing \(syncPath) to \(metadata.targetFolder.s3Key)...")
-                        try await Current.s3Client.sync(client: awsClient,
-                                                        logger: logger,
-                                                        from: syncPath,
-                                                        to: metadata.targetFolder.s3Key)
-                        logger.info("✅ Completed syncing \(syncPath)")
+                    try await Retry.repeatedly("Syncing ...", logger: logger, interval: 1) {
+                        do {
+                            let syncPath = "\(outputPath)/\(metadata.sourcePath)"
+                            logger.info("Syncing \(syncPath) to \(metadata.targetFolder.s3Key)...")
+                            try await Current.s3Client.sync(client: awsClient,
+                                                            logger: logger,
+                                                            from: syncPath,
+                                                            to: metadata.targetFolder.s3Key)
+                            logger.info("✅ Completed syncing \(syncPath)")
+                            return .success
+                        } catch {
+                            logger.error("\(error)")
+                        }
+                        return .failure
                     }
                 } defer: {
                     // try? await Current.s3Client.deleteFile(client: awsClient, logger: logger, key: s3Key)
