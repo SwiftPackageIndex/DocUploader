@@ -149,6 +149,7 @@ public struct DocUploader: LambdaHandler {
                         case 200..<299:
                             return .success
                         default:
+                            logger.error("Sending doc report failed with status code: \(status.code)")
                             return .failure
                     }
                 } catch {
