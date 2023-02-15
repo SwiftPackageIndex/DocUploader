@@ -148,6 +148,10 @@ public struct DocUploader: LambdaHandler {
                     switch status.code {
                         case 200..<299:
                             return .success
+                        case 400..<499:
+                            logger.error("Sending doc report failed with status code: \(status.code)")
+                            // Don't retry, the server responded and we won't succeed
+                            return .abort
                         default:
                             logger.error("Sending doc report failed with status code: \(status.code)")
                             return .failure
