@@ -16,6 +16,7 @@ import Foundation
 
 import AsyncHTTPClient
 import Dependencies
+import DocUploadBundle
 import NIOHTTP1
 
 
@@ -30,6 +31,7 @@ enum DocReport {
     }
 
     struct PostDocReportDTO: Codable {
+        var docArchives: [DocArchive]
         var error: String?
         var fileCount: Int?
         var logUrl: String?
