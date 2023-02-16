@@ -54,6 +54,7 @@ public struct DocUploadBundle {
         public var apiBaseURL: String
         public var apiToken: String
         public var buildId: UUID
+        public var docArchives: [DocArchive]
         public var fileCount: Int?
         public var mbSize: Int?
 
@@ -84,6 +85,7 @@ public struct DocUploadBundle {
         apiBaseURL: String,
         apiToken: String,
         buildId: UUID,
+        docArchives: [DocArchive],
         fileCount: Int? = nil,
         mbSize: Int? = nil
     ) {
@@ -100,6 +102,7 @@ public struct DocUploadBundle {
             apiBaseURL: apiBaseURL,
             apiToken: apiToken,
             buildId: buildId,
+            docArchives: docArchives,
             fileCount: fileCount,
             mbSize: mbSize,
             sourcePath: URL(fileURLWithPath: sourcePath).lastPathComponent.lowercased(),

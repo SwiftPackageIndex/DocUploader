@@ -35,6 +35,7 @@ final class DocUploadTests: XCTestCase {
                             apiBaseURL: "baseURL",
                             apiToken: "token",
                             buildId: cafe,
+                            docArchives: [.init(name: "foo", title: "Foo")],
                             fileCount: 123,
                             mbSize: 456)
         }
@@ -44,6 +45,7 @@ final class DocUploadTests: XCTestCase {
                            apiBaseURL: "baseURL",
                            apiToken: "token",
                            buildId: cafe,
+                           docArchives: [.init(name: "foo", title: "Foo")],
                            fileCount: 123,
                            mbSize: 456,
                            sourcePath: "branch",
@@ -78,7 +80,8 @@ final class DocUploadTests: XCTestCase {
                 apiBaseURL: "http://localhost:8080/api",
                 apiToken: "builder-token",
                 buildId: UUID(uuidString: "f6ab0ddb-2540-4613-b087-ed55474f6b16")!,
-                dto: .init(error: "too big",
+                dto: .init(docArchives: [.init(name: "foo", title: "Foo")],
+                           error: "too big",
                            fileCount: 1_234,
                            logUrl: "log url 1",
                            mbSize: 123,

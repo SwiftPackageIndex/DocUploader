@@ -138,7 +138,8 @@ public struct DocUploader: LambdaHandler {
                         apiBaseURL: metadata.apiBaseURL,
                         apiToken: metadata.apiToken,
                         buildId: metadata.buildId,
-                        dto: .init(error: result.error,
+                        dto: .init(docArchives: metadata.docArchives,
+                                   error: result.error,
                                    fileCount: metadata.fileCount,
                                    logUrl: Self.logURL(),
                                    mbSize: metadata.mbSize,
@@ -147,7 +148,12 @@ public struct DocUploader: LambdaHandler {
                     switch status.code {
                         case 200..<299:
                             return .success
+                        case 400..<499:
+                            logger.error("Sending doc report failed with status code: \(status.code)")
+                            // Don't retry, the server responded and we won't succeed
+                            return .abort
                         default:
+                            logger.error("Sending doc report failed with status code: \(status.code)")
                             return .failure
                     }
                 } catch {

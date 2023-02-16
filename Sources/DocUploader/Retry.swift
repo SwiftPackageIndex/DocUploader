@@ -23,6 +23,7 @@ enum Retry {
     }
 
     enum Result {
+        case abort
         case success
         case failure
     }
@@ -35,7 +36,7 @@ enum Retry {
         var currentTry = 1
         while currentTry <= retries {
             logger.info("\(label) (attempt \(currentTry))")
-            if try await block() == .success { return }
+            if try await [Result.success, .abort].contains(block()) { return }
             let wait = delay(retryCount: currentTry, interval: interval)
             logger.info("Retrying in \(wait) seconds ...")
             sleep(wait)
