@@ -21,7 +21,7 @@ import AsyncHTTPClient
 import Dependencies
 
 
-final class DocUploadTests: XCTestCase {
+final class DocUploaderTests: XCTestCase {
 
     func test_init() throws {
         let cafe = UUID(uuidString: "cafecafe-cafe-cafe-cafe-cafecafecafe")!
