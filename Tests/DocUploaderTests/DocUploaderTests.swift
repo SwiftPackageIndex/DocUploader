@@ -14,7 +14,6 @@
 
 import XCTest
 
-@testable import DocUploadBundle
 @testable import DocUploader
 
 import AsyncHTTPClient
@@ -22,38 +21,6 @@ import Dependencies
 
 
 final class DocUploaderTests: XCTestCase {
-
-    func test_init() throws {
-        let cafe = UUID(uuidString: "cafecafe-cafe-cafe-cafe-cafecafecafe")!
-        let bundle = withDependencies {
-            $0.uuid = .constant(cafe)
-        } operation: {
-            DocUploadBundle(sourcePath: "/foo/bar/owner/name/branch",
-                            bucket: "spi-prod-docs",
-                            repository: .init(owner: "Owner", name: "Name"),
-                            reference: "Branch",
-                            apiBaseURL: "baseURL",
-                            apiToken: "token",
-                            buildId: cafe,
-                            docArchives: [.init(name: "foo", title: "Foo")],
-                            fileCount: 123,
-                            mbSize: 456)
-        }
-        XCTAssertEqual(bundle.archiveName, "prod-owner-name-branch-cafecafe.zip")
-        XCTAssertEqual(bundle.metadata,
-                       .init(
-                           apiBaseURL: "baseURL",
-                           apiToken: "token",
-                           buildId: cafe,
-                           docArchives: [.init(name: "foo", title: "Foo")],
-                           fileCount: 123,
-                           mbSize: 456,
-                           sourcePath: "branch",
-                           targetFolder: bundle.s3Folder)
-                       )
-        XCTAssertEqual(bundle.s3Folder,
-                       .init(bucket: "spi-prod-docs", path: "owner/name/branch"))
-    }
 
     func test_logUrl() throws {
         let logURL = DocUploader
