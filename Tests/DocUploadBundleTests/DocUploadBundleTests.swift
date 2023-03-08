@@ -53,4 +53,25 @@ final class DocUploadBundleTests: XCTestCase {
                        .init(bucket: "spi-prod-docs", path: "owner/name/branch"))
     }
 
+    func test_issue_10() throws {
+        // https://github.com/SwiftPackageIndex/DocUploader/issues/10
+        // Reference with / produces bad archive name
+        let cafe = UUID(uuidString: "cafecafe-cafe-cafe-cafe-cafecafecafe")!
+        let bundle = withDependencies {
+            $0.uuid = .constant(cafe)
+        } operation: {
+            DocUploadBundle(sourcePath: "/path",
+                            bucket: "spi-prod-docs",
+                            repository: .init(owner: "Owner", name: "Name"),
+                            reference: "feature/2.0.0",
+                            apiBaseURL: "baseURL",
+                            apiToken: "token",
+                            buildId: cafe,
+                            docArchives: [.init(name: "foo", title: "Foo")],
+                            fileCount: 123,
+                            mbSize: 456)
+        }
+        XCTAssertEqual(bundle.archiveName, "prod-owner-name-feature%2F2.0.0-cafecafe.zip")
+    }
+
 }
