@@ -71,7 +71,7 @@ final class DocUploadBundleTests: XCTestCase {
                             fileCount: 123,
                             mbSize: 456)
         }
-        XCTAssertEqual(bundle.archiveName, "prod-owner-name-feature%2F2.0.0-cafecafe.zip")
+        XCTAssertEqual(bundle.archiveName, "prod-owner-name-feature%2f2.0.0-cafecafe.zip")
     }
 
 }

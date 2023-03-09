@@ -12,12 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-public struct DocArchive: Codable, Equatable {
-    public var name: String
-    public var title: String
-
-    public init(name: String, title: String) {
-        self.name = name
-        self.title = title
+extension String {
+    public var urlEncoded: Self {
+        addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? self
     }
 }
