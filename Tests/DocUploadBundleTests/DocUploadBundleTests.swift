@@ -69,7 +69,7 @@ final class DocUploadBundleTests: XCTestCase {
         let bundle = withDependencies {
             $0.uuid = .constant(cafe)
         } operation: {
-            DocUploadBundle(sourcePath: "/path",
+            DocUploadBundle(sourcePath: "/owner/name/feature.2.0.0",
                             bucket: "spi-prod-docs",
                             repository: .init(owner: "Owner", name: "Name"),
                             reference: "feature/2.0.0",
@@ -81,6 +81,19 @@ final class DocUploadBundleTests: XCTestCase {
                             mbSize: 456)
         }
         XCTAssertEqual(bundle.archiveName, "prod-owner-name-feature.2.0.0-cafecafe.zip")
+        XCTAssertEqual(bundle.metadata,
+                       .init(
+                           apiBaseURL: "baseURL",
+                           apiToken: "token",
+                           buildId: cafe,
+                           docArchives: [.init(name: "foo", title: "Foo")],
+                           fileCount: 123,
+                           mbSize: 456,
+                           sourcePath: "feature.2.0.0",
+                           targetFolder: bundle.s3Folder)
+                       )
+        XCTAssertEqual(bundle.s3Folder,
+                       .init(bucket: "spi-prod-docs", path: "owner/name/feature.2.0.0"))
     }
 
 }
