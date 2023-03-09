@@ -13,7 +13,7 @@
 // limitations under the License.
 
 extension String {
-    public var urlEncoded: Self {
-        addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? self
+    public var pathEncoded: Self {
+        replacingOccurrences(of: "/", with: ".")
     }
 }

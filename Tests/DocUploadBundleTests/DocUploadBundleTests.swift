@@ -53,13 +53,13 @@ final class DocUploadBundleTests: XCTestCase {
                        .init(bucket: "spi-prod-docs", path: "owner/name/branch"))
     }
 
-    func test_String_urlEncoded() throws {
-        XCTAssertEqual("main".urlEncoded, "main")
-        XCTAssertEqual("1.2.3".urlEncoded, "1.2.3")
-        XCTAssertEqual("0.50900.0-swift-DEVELOPMENT-SNAPSHOT-2023-02-27-a".urlEncoded,
+    func test_String_pathEncoded() throws {
+        XCTAssertEqual("main".pathEncoded, "main")
+        XCTAssertEqual("1.2.3".pathEncoded, "1.2.3")
+        XCTAssertEqual("0.50900.0-swift-DEVELOPMENT-SNAPSHOT-2023-02-27-a".pathEncoded,
                        "0.50900.0-swift-DEVELOPMENT-SNAPSHOT-2023-02-27-a")
-        XCTAssertEqual("foo/bar".urlEncoded, "foo%2Fbar")
-        XCTAssertEqual("v1.2.3-beta1+build5".urlEncoded, "v1.2.3-beta1+build5")
+        XCTAssertEqual("foo/bar".pathEncoded, "foo.bar")
+        XCTAssertEqual("v1.2.3-beta1+build5".pathEncoded, "v1.2.3-beta1+build5")
     }
 
     func test_issue_10() throws {
@@ -69,7 +69,7 @@ final class DocUploadBundleTests: XCTestCase {
         let bundle = withDependencies {
             $0.uuid = .constant(cafe)
         } operation: {
-            DocUploadBundle(sourcePath: "/path",
+            DocUploadBundle(sourcePath: "/owner/name/feature.2.0.0",
                             bucket: "spi-prod-docs",
                             repository: .init(owner: "Owner", name: "Name"),
                             reference: "feature/2.0.0",
@@ -80,7 +80,20 @@ final class DocUploadBundleTests: XCTestCase {
                             fileCount: 123,
                             mbSize: 456)
         }
-        XCTAssertEqual(bundle.archiveName, "prod-owner-name-feature%2f2.0.0-cafecafe.zip")
+        XCTAssertEqual(bundle.archiveName, "prod-owner-name-feature.2.0.0-cafecafe.zip")
+        XCTAssertEqual(bundle.metadata,
+                       .init(
+                           apiBaseURL: "baseURL",
+                           apiToken: "token",
+                           buildId: cafe,
+                           docArchives: [.init(name: "foo", title: "Foo")],
+                           fileCount: 123,
+                           mbSize: 456,
+                           sourcePath: "feature.2.0.0",
+                           targetFolder: bundle.s3Folder)
+                       )
+        XCTAssertEqual(bundle.s3Folder,
+                       .init(bucket: "spi-prod-docs", path: "owner/name/feature.2.0.0"))
     }
 
 }
