@@ -74,7 +74,8 @@ public struct DocUploadBundle {
     public let s3Folder: S3Folder
 
     var archiveName: String {
-        "\(env)-\(repository.owner)-\(repository.name)-\(reference)-\(self.uuid().firstSegment).zip".lowercased()
+        "\(env)-\(repository.owner)-\(repository.name)-\(reference.urlEncoded)-\(self.uuid().firstSegment).zip"
+            .lowercased()
     }
 
     public init(
@@ -96,7 +97,7 @@ public struct DocUploadBundle {
         self.env = bucket.droppingSPIPrefix().droppingDocsSuffix()
         self.s3Folder = .init(
             bucket: bucket,
-            path: "\(repository.owner)/\(repository.name)/\(reference)".lowercased()
+            path: "\(repository.owner)/\(repository.name)/\(reference.urlEncoded)".lowercased()
         )
         self.metadata = .init(
             apiBaseURL: apiBaseURL,
