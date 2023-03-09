@@ -53,6 +53,15 @@ final class DocUploadBundleTests: XCTestCase {
                        .init(bucket: "spi-prod-docs", path: "owner/name/branch"))
     }
 
+    func test_String_urlEncoded() throws {
+        XCTAssertEqual("main".urlEncoded, "main")
+        XCTAssertEqual("1.2.3".urlEncoded, "1.2.3")
+        XCTAssertEqual("0.50900.0-swift-DEVELOPMENT-SNAPSHOT-2023-02-27-a".urlEncoded,
+                       "0.50900.0-swift-DEVELOPMENT-SNAPSHOT-2023-02-27-a")
+        XCTAssertEqual("foo/bar".urlEncoded, "foo%2Fbar")
+        XCTAssertEqual("v1.2.3-beta1+build5".urlEncoded, "v1.2.3-beta1+build5")
+    }
+
     func test_issue_10() throws {
         // https://github.com/SwiftPackageIndex/DocUploader/issues/10
         // Reference with / produces bad archive name
