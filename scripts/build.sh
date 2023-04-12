@@ -22,5 +22,5 @@ docker run \
   --rm \
   --volume "$(pwd):/src" \
   --workdir "/src" \
-  swift:5.7.1-amazonlinux2 \
+  swift:5.8.0-amazonlinux2 \
   swift build --product "$executable" -c release --static-swift-stdlib #-Xswiftc -cross-module-optimization 
