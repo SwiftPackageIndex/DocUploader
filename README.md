@@ -33,3 +33,31 @@ make deploy-test
 ## Lambda operation notes
 
 https://docs.aws.amazon.com/lambda/latest/operatorguide/computing-power.html
+
+## Release testing
+
+There is currently no automated test setup to validate a new release, because it would be quite complex to set up.
+
+Instead, use the `dev` environment to validate a new release as follows:
+
+- Deploy the new version to the "test" lambda
+
+```
+make deploy-test
+```
+
+- Trigger a doc upload via the "test" lambda by downloading a `dev-` doc bundle from `spi-docs-inbox` and uploading it to `spi-scratch-inbox`:
+
+```bash
+❯ aws s3 cp s3://spi-docs-inbox/dev-swiftpackageindex-semanticversion-0.3.4-4e7b8a37.zip .
+❯ aws s3 cp dev-swiftpackageindex-semanticversion-0.3.4-4e7b8a37.zip s3://spi-scratch-inbox/
+```
+
+- Verify docs updated in `spi-dev-docs` for the given package (either by checking the timestamp or by deleting the version first and ensuring it re-appears)
+
+## Pushing a new release
+
+Once a new release has been validated, push a new release as follows:
+
+- Tag the version
+- Run `make deploy-prod`
