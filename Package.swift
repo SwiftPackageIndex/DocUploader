@@ -28,7 +28,7 @@ let package = Package(
         .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", from: "1.0.0-alpha.1"),
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer.git", from: "1.2.0"),
         .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.2"),
-        .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "0.1.4")
+        .package(url: "https://github.com/pointfreeco/swift-dependencies.git", exact: "0.2.0")
     ],
     targets: [
         .executableTarget(name: "Executable", dependencies: ["DocUploader"]),
