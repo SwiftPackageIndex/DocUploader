@@ -40,6 +40,12 @@ There is currently no automated test setup to validate a new release, because it
 
 Instead, use the `dev` environment to validate a new release as follows:
 
+- Run the tests
+
+```
+docker run --rm -v "$PWD":/host -w /host swift:5.8.0-amazonlinux2 swift test
+```
+
 - Deploy the new version to the "test" lambda
 
 ```
