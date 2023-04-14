@@ -58,7 +58,7 @@ final class DocUploadBundleTests: XCTestCase {
         XCTAssertEqual("1.2.3".pathEncoded, "1.2.3")
         XCTAssertEqual("0.50900.0-swift-DEVELOPMENT-SNAPSHOT-2023-02-27-a".pathEncoded,
                        "0.50900.0-swift-DEVELOPMENT-SNAPSHOT-2023-02-27-a")
-        XCTAssertEqual("foo/bar".pathEncoded, "foo.bar")
+        XCTAssertEqual("foo/bar".pathEncoded, "foo-bar")
         XCTAssertEqual("v1.2.3-beta1+build5".pathEncoded, "v1.2.3-beta1+build5")
     }
 
