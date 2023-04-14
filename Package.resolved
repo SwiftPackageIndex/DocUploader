@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/swift-server/async-http-client.git",
       "state" : {
-        "revision" : "864c8d9e0ead5de7ba70b61c8982f89126710863",
-        "version" : "1.15.0"
+        "revision" : "5b4f03de0600da906f9e46e9f636ec26218da080",
+        "version" : "1.16.0"
       }
     },
     {
@@ -167,8 +167,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-nio-ssl.git",
       "state" : {
-        "revision" : "4fb7ead803e38949eb1d6fabb849206a72c580f3",
-        "version" : "2.23.0"
+        "revision" : "9d0d5d8798a576fbf674a823734e65e15ca5f2ec",
+        "version" : "2.23.1"
       }
     },
     {
