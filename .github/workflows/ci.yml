@@ -15,19 +15,19 @@
 name: CI
 
 on:
-    workflow_dispatch:
-    push:
-        branches: [ main ]
-    pull_request:
-        branches: [ main ]
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-    tests:
-        runs-on: ubuntu-latest
-        container:
-            image: swift:5.8.0-amazonlinux2
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v3
-            - name: Run tests
-              run: swift test
+  tests:
+    runs-on: ubuntu-latest
+    container:
+      image: swift:5.8.0-amazonlinux2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Run tests
+        run: swift test
