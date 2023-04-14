@@ -59,7 +59,9 @@ make deploy-test
 ❯ aws s3 cp dev-swiftpackageindex-semanticversion-0.3.4-4e7b8a37.zip s3://spi-scratch-inbox/
 ```
 
-- Verify docs updated in `spi-dev-docs` for the given package (either by checking the timestamp or by deleting the version first and ensuring it re-appears)
+- Check the `DocUploaderLambda-Test` CloudWatch log group to confirm the new version has been triggered and processed the file without errors.
+
+- Verify docs updated in `spi-dev-docs` for the given package (either by checking the timestamp or by deleting the version first and ensuring it re-appears).
 
 ## Pushing a new release
 
@@ -67,3 +69,16 @@ Once a new release has been validated, push a new release as follows:
 
 - Tag the version
 - Run `make deploy-prod`
+
+## Installing and updating SAM
+
+Install:
+```
+brew tap aws/tap
+brew install aws-sam-cli
+```
+
+Update:
+```
+brew upgrade aws-sam-cli
+```
