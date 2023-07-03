@@ -34,6 +34,7 @@ enum DocReport {
         var docArchives: [DocArchive]
         var error: String?
         var fileCount: Int?
+        var linkablePathsCount: Int?
         var logUrl: String?
         var mbSize: Int?
         var status: Status

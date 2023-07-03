@@ -56,6 +56,7 @@ public struct DocUploadBundle {
         public var buildId: UUID
         public var docArchives: [DocArchive]
         public var fileCount: Int?
+        public var linkablePathsCount: Int?
         public var mbSize: Int?
 
         /// Basename of the doc set source directory after unzipping. The value will be the source code revision, e.g. "1.2.3" or "main".
@@ -88,6 +89,7 @@ public struct DocUploadBundle {
         buildId: UUID,
         docArchives: [DocArchive],
         fileCount: Int? = nil,
+        linkablePathsCount: Int? = nil,
         mbSize: Int? = nil
     ) {
         self.sourcePath = sourcePath
@@ -105,6 +107,7 @@ public struct DocUploadBundle {
             buildId: buildId,
             docArchives: docArchives,
             fileCount: fileCount,
+            linkablePathsCount: linkablePathsCount,
             mbSize: mbSize,
             sourcePath: URL(fileURLWithPath: sourcePath).lastPathComponent.lowercased(),
             targetFolder: s3Folder

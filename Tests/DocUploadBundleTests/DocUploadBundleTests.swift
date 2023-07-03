@@ -35,6 +35,7 @@ final class DocUploadBundleTests: XCTestCase {
                             buildId: cafe,
                             docArchives: [.init(name: "foo", title: "Foo")],
                             fileCount: 123,
+                            linkablePathsCount: 234,
                             mbSize: 456)
         }
         XCTAssertEqual(bundle.archiveName, "prod-owner-name-branch-cafecafe.zip")
@@ -45,6 +46,7 @@ final class DocUploadBundleTests: XCTestCase {
                            buildId: cafe,
                            docArchives: [.init(name: "foo", title: "Foo")],
                            fileCount: 123,
+                           linkablePathsCount: 234,
                            mbSize: 456,
                            sourcePath: "branch",
                            targetFolder: bundle.s3Folder)
@@ -78,6 +80,7 @@ final class DocUploadBundleTests: XCTestCase {
                             buildId: cafe,
                             docArchives: [.init(name: "foo", title: "Foo")],
                             fileCount: 123,
+                            linkablePathsCount: 234,
                             mbSize: 456)
         }
         XCTAssertEqual(bundle.archiveName, "prod-owner-name-feature-2.0.0-cafecafe.zip")
@@ -88,6 +91,7 @@ final class DocUploadBundleTests: XCTestCase {
                            buildId: cafe,
                            docArchives: [.init(name: "foo", title: "Foo")],
                            fileCount: 123,
+                           linkablePathsCount: 234,
                            mbSize: 456,
                            sourcePath: "feature-2.0.0",
                            targetFolder: bundle.s3Folder)

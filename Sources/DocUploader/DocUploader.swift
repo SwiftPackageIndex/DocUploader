@@ -141,6 +141,7 @@ public struct DocUploader: LambdaHandler {
                         dto: .init(docArchives: metadata.docArchives,
                                    error: result.error,
                                    fileCount: metadata.fileCount,
+                                   linkablePathsCount: metadata.linkablePathsCount,
                                    logUrl: Self.logURL(),
                                    mbSize: metadata.mbSize,
                                    status: result.status)
