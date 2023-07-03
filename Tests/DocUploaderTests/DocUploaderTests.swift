@@ -50,6 +50,7 @@ final class DocUploaderTests: XCTestCase {
                 dto: .init(docArchives: [.init(name: "foo", title: "Foo")],
                            error: "too big",
                            fileCount: 1_234,
+                           linkablePathsCount: 234,
                            logUrl: "log url 1",
                            mbSize: 123,
                            status: .skipped))
