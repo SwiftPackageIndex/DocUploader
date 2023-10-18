@@ -20,7 +20,7 @@ import SotoS3FileTransfer
 struct LiveS3Client: S3Client {
     func deleteFile(client: AWSClient, logger: Logger, key: S3StoreKey) async throws {
         let s3 = S3(client: client, region: .useast2)
-        let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
+        let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .singleton)
 
         guard let file = S3File(key: key) else {
             throw Error(message: "Invalid key: \(key)")
@@ -30,7 +30,7 @@ struct LiveS3Client: S3Client {
 
     func loadFile(client: AWSClient, logger: Logger, from key: S3StoreKey, to path: String) async throws {
         let s3 = S3(client: client, region: .useast2)
-        let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .createNew)
+        let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .singleton)
 
         guard let file = S3File(key: key) else {
             throw Error(message: "Invalid key: \(key)")

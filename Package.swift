@@ -32,12 +32,19 @@ let package = Package(
     ],
     targets: [
         .executableTarget(name: "Executable", dependencies: ["DocUploader"]),
-        .target(name: "DocUploader", dependencies: [
-            "DocUploadBundle",
-            .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-events"),
-            .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
-            .product(name: "SotoS3FileTransfer", package: "soto-s3-file-transfer"),
-        ]),
+        .target(
+            name: "DocUploader",
+            dependencies: [
+                "DocUploadBundle",
+                .product(name: "AWSLambdaEvents", package: "swift-aws-lambda-events"),
+                .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
+                .product(name: "SotoS3FileTransfer", package: "soto-s3-file-transfer"),
+            ],
+            linkerSettings: [
+                // Fixes ld: warning: ignoring duplicate libraries: '-lz'
+                .unsafeFlags(["-Xlinker", "-no_warn_duplicate_libraries"])
+            ]
+        ),
         .target(name: "DocUploadBundle", dependencies: [
             .product(name: "Zip", package: "Zip"),
             .product(name: "Dependencies", package: "swift-dependencies")

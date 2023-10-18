@@ -40,7 +40,7 @@ final class DocUploaderTests: XCTestCase {
                 return .init(status: .noContent)
             }
         } operation: {
-            let client = HTTPClient(eventLoopGroupProvider: .createNew)
+            let client = HTTPClient(eventLoopGroupProvider: .singleton)
             defer { try? client.syncShutdown() }
             let status = try await DocReport.reportResult(
                 client: client,
