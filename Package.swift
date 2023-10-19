@@ -16,6 +16,16 @@
 
 import PackageDescription
 
+
+var linkerSettings: [LinkerSetting]? = nil
+#if os(macOS)
+// Fixes ld: warning: ignoring duplicate libraries: '-lz'
+linkerSettings = [.unsafeFlags(["-Xlinker", "-no_warn_duplicate_libraries"])]
+// Linux build fails with
+// /usr/bin/ld.gold: fatal error: -pie and -static are incompatible
+// if we include this settings
+#endif
+
 let package = Package(
     name: "DocUploader",
     platforms: [.macOS(.v12)],
@@ -43,10 +53,7 @@ let package = Package(
                 .product(name: "AWSLambdaRuntime", package: "swift-aws-lambda-runtime"),
                 .product(name: "SotoS3FileTransfer", package: "soto-s3-file-transfer"),
             ],
-            linkerSettings: [
-                // Fixes ld: warning: ignoring duplicate libraries: '-lz'
-                .unsafeFlags(["-Xlinker", "-no_warn_duplicate_libraries"])
-            ]
+            linkerSettings: linkerSettings
         ),
         .target(name: "DocUploadBundle", dependencies: [
             .product(name: "Zip", package: "Zip"),
