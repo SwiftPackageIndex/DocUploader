@@ -24,6 +24,9 @@ let package = Package(
         .library(name: "DocUploadBundle", targets: ["DocUploadBundle"])
     ],
     dependencies: [
+        // NB: We include swift-crypto even though it's not a direct dependency to ensure we can build with
+        // --disable-automatic-resolution on all platforms.
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "3.0.0"),
         .package(url: "https://github.com/swift-server/swift-aws-lambda-events.git", from: "0.1.0"),
         .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", from: "1.0.0-alpha.1"),
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer.git", from: "1.2.0"),
