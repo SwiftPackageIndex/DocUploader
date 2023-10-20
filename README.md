@@ -19,7 +19,7 @@ Deployment also requires [Docker for Mac](https://docs.docker.com/desktop/instal
 Run
 
 ```
-aws login
+aws configure
 ```
 
 to set up the default credentials for deploying into AWS.
@@ -55,13 +55,20 @@ make deploy-test
 - Trigger a doc upload via the "test" lambda by downloading a `dev-` doc bundle from `spi-docs-inbox` and uploading it to `spi-scratch-inbox`:
 
 ```bash
-❯ aws s3 cp s3://spi-docs-inbox/dev-swiftpackageindex-semanticversion-0.3.4-4e7b8a37.zip .
-❯ aws s3 cp dev-swiftpackageindex-semanticversion-0.3.4-4e7b8a37.zip s3://spi-scratch-inbox/
+aws s3 cp dev-swiftpackageindex-semanticversion-0.3.6-356386b9.zip s3://spi-scratch-inbox/
 ```
 
-- Check the `DocUploaderLambda-Test` CloudWatch log group to confirm the new version has been triggered and processed the file without errors.
+- Check the [`DocUploaderLambda-Test` CloudWatch log group](https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#logsV2:log-groups/log-group/$252Faws$252Flambda$252FDocUploaderLambda-Test-UploadFunction-3D3w0QTh1l6H) to confirm the new version has been triggered and processed the file without errors.
 
-- Verify docs updated in `spi-dev-docs` for the given package (either by checking the timestamp or by deleting the version first and ensuring it re-appears).
+```bash
+open 'https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#logsV2:log-groups/log-group/$252Faws$252Flambda$252FDocUploaderLambda-Test-UploadFunction-3D3w0QTh1l6H'
+```
+
+- Verify docs updated in [`spi-dev-docs`](https://s3.console.aws.amazon.com/s3/buckets/spi-dev-docs?region=us-east-2&prefix=swiftpackageindex/semanticversion/0.3.6/&showversions=false) for the given package (either by checking the timestamp or by deleting the version first and ensuring it re-appears).
+
+```bash
+open 'https://s3.console.aws.amazon.com/s3/buckets/spi-dev-docs?region=us-east-2&prefix=swiftpackageindex/semanticversion/0.3.6/&showversions=false'
+```
 
 ## Pushing a new release
 
