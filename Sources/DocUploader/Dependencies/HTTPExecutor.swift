@@ -36,14 +36,5 @@ extension HTTPExecutor {
 }
 
 extension HTTPExecutor: DependencyKey {
-    static var liveValue: HTTPExecutor {
-        .live
-    }
-}
-
-extension DependencyValues {
-    var httpClient: HTTPExecutor {
-        get { self[HTTPExecutor.self] }
-        set { self[HTTPExecutor.self] = newValue }
-    }
+    static var liveValue: HTTPExecutor { .live }
 }

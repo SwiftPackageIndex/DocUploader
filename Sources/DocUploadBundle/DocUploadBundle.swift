@@ -20,8 +20,11 @@ import Zip
 
 public struct DocUploadBundle {
 
-//    @Dependency(\.uuid) var uuid
+#if DEBUG
+    @Dependency(\.uuid) var uuid
+#else
     let uuid = { UUID() }
+#endif
 
     public struct S3Folder: Codable, Equatable {
         public var bucket: String

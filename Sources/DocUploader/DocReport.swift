@@ -22,7 +22,11 @@ import NIOHTTP1
 
 enum DocReport {
 
-    @Dependency(\.httpClient) static var httpClient: HTTPExecutor
+#if DEBUG
+    @Dependency(HTTPExecutor.self) static var httpClient: HTTPExecutor
+#else
+    static let httpClient: HTTPExecutor = .live
+#endif
 
     enum Status: String, Codable {
         case ok

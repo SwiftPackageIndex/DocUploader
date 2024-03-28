@@ -35,7 +35,7 @@ final class DocUploaderTests: XCTestCase {
     func test_reportResult() async throws {
         var request: HTTPClientRequest?
         try await withDependencies {
-            $0.httpClient.execute = { _, req, _ in
+            $0[HTTPExecutor.self].execute = { _, req, _ in
                 request = req
                 return .init(status: .noContent)
             }
