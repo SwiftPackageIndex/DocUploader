@@ -20,6 +20,7 @@ import Zip
 
 public struct DocUploadBundle {
 
+    // Workaround for https://github.com/pointfreeco/swift-dependencies/issues/199
 #if DEBUG
     @Dependency(\.uuid) var uuid
 #else
