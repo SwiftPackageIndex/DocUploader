@@ -22,7 +22,12 @@ import NIOHTTP1
 
 enum DocReport {
 
-    @Dependency(\.httpClient) static var httpClient: HTTPExecutor
+    // Workaround for https://github.com/pointfreeco/swift-dependencies/issues/199
+#if DEBUG
+    @Dependency(HTTPExecutor.self) static var httpClient: HTTPExecutor
+#else
+    static let httpClient: HTTPExecutor = .live
+#endif
 
     enum Status: String, Codable {
         case ok

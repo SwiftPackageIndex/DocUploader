@@ -14,17 +14,14 @@
 
 import Foundation
 
-#if swift(>=5.6)
-// Swift5.5Tests need to run with Swift 5.5 but swift-dependencies has tools-version 5.6
 import Dependencies
-#endif
 import Zip
 
 
 public struct DocUploadBundle {
 
-#if swift(>=5.6)
-    // Swift5.5Tests need to run with Swift 5.5 but swift-dependencies has tools-version 5.6
+    // Workaround for https://github.com/pointfreeco/swift-dependencies/issues/199
+#if DEBUG
     @Dependency(\.uuid) var uuid
 #else
     let uuid = { UUID() }
