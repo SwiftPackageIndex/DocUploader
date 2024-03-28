@@ -42,33 +42,34 @@ Instead, use the `dev` environment to validate a new release as follows:
 
 - Run the tests
 
-```
-docker run --rm -v "$PWD":/host -w /host swift:5.8.0-amazonlinux2 swift test
-```
+    ```
+    docker run --rm -v "$PWD":/host -w /host swift:5.9.0-amazonlinux2 swift test
+    ```
 
 - Deploy the new version to the "test" lambda
 
-```
-make deploy-test
-```
+    ```
+    make deploy-test
+    ```
 
-- Trigger a doc upload via the "test" lambda by downloading a `dev-` doc bundle from `spi-docs-inbox` and uploading it to `spi-scratch-inbox`:
-
-```bash
-aws s3 cp dev-swiftpackageindex-semanticversion-0.3.6-356386b9.zip s3://spi-scratch-inbox/
-```
+- Trigger a doc upload via the "test" lambda by uploading a doc bundle to `spi-scratch-inbox`:
+  
+  ```bash
+    aws s3 cp dev-swiftpackageindex-semanticversion-0.3.6-356386b9.zip s3://spi-scratch-inbox/
+    ```
+  Use the doc bundle included in this repo or download a `dev-` doc bundle from `spi-docs-inbox` on S3.
 
 - Check the [`DocUploaderLambda-Test` CloudWatch log group](https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#logsV2:log-groups/log-group/$252Faws$252Flambda$252FDocUploaderLambda-Test-UploadFunction-3D3w0QTh1l6H) to confirm the new version has been triggered and processed the file without errors.
 
-```bash
-open 'https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#logsV2:log-groups/log-group/$252Faws$252Flambda$252FDocUploaderLambda-Test-UploadFunction-3D3w0QTh1l6H'
-```
+    ```bash
+    open 'https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#logsV2:log-groups/log-group/$252Faws$252Flambda$252FDocUploaderLambda-Test-UploadFunction-3D3w0QTh1l6H'
+    ```
 
 - Verify docs updated in [`spi-dev-docs`](https://s3.console.aws.amazon.com/s3/buckets/spi-dev-docs?region=us-east-2&prefix=swiftpackageindex/semanticversion/0.3.6/&showversions=false) for the given package (either by checking the timestamp or by deleting the version first and ensuring it re-appears).
 
-```bash
-open 'https://s3.console.aws.amazon.com/s3/buckets/spi-dev-docs?region=us-east-2&prefix=swiftpackageindex/semanticversion/0.3.6/&showversions=false'
-```
+    ```bash
+    open 'https://s3.console.aws.amazon.com/s3/buckets/spi-dev-docs?region=us-east-2&prefix=swiftpackageindex/semanticversion/0.3.6/&showversions=false'
+    ```
 
 ## Pushing a new release
 
