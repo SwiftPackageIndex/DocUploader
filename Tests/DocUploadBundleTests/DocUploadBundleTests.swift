@@ -105,7 +105,7 @@ final class DocUploadBundleTests: XCTestCase {
         try await withTempDir { tempDir in
             let url = fixtureUrl(for: "prod-apple-swift-metrics-main-e6a00d36.zip")
             XCTAssertNoThrow(
-                try DocUploadBundle.unzip(bundle: url.path(), outputPath: tempDir)
+                try DocUploadBundle.unzip(bundle: url.path, outputPath: tempDir)
             )
             XCTAssert(FileManager.default.fileExists(atPath: tempDir + "/metadata.json"))
             XCTAssert(FileManager.default.fileExists(atPath: tempDir + "/main/index.html"))
