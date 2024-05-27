@@ -22,13 +22,23 @@ final class ZipTests: XCTestCase {
     func test_zip() async throws {
         // Test basic zip behaviour we expect from the library we use
         try await withTempDir { tempDir in
+            //  temp
             let tempURL = URL(fileURLWithPath: tempDir)
+
+            // temp/a.txt
             let fileA = tempURL.appendingPathComponent("a.txt")
-            let fileB = tempURL.appendingPathComponent("b.txt")
             try "a".write(to: fileA, atomically: true, encoding: .utf8)
+
+            // temp/subdir/
+            let subdir = tempURL.appendingPathComponent("subdir")
+            try FileManager.default.createDirectory(at: subdir, withIntermediateDirectories: false)
+
+            // temp/subdir/b.txt
+            let fileB = subdir.appendingPathComponent("b.txt")
             try "b".write(to: fileB, atomically: true, encoding: .utf8)
+
             let zipFile = tempURL.appendingPathComponent("out.zip")
-            try Zipper.zip(paths: [fileA, fileB], to: zipFile)
+            try Zipper.zip(paths: [fileA, subdir], to: zipFile)
             XCTAssert(FileManager.default.fileExists(atPath: zipFile.path))
         }
     }
@@ -41,8 +51,11 @@ final class ZipTests: XCTestCase {
             let outDir = tempURL.appendingPathComponent("out")
             try Zipper.unzip(from: zipFile, to: outDir)
             XCTAssert(FileManager.default.fileExists(atPath: outDir.path))
+
+            // out/a.txt
+            // out/subdir/b.txt
             let fileA = outDir.appendingPathComponent("a.txt")
-            let fileB = outDir.appendingPathComponent("b.txt")
+            let fileB = outDir.appendingPathComponent("subdir").appendingPathComponent("b.txt")
             XCTAssert(FileManager.default.fileExists(atPath: fileA.path))
             XCTAssert(FileManager.default.fileExists(atPath: fileB.path))
             XCTAssertEqual(try String(contentsOf: fileA), "a")
