@@ -22,29 +22,29 @@ final class ZipTests: XCTestCase {
     func test_zip() async throws {
         // Test basic zip behaviour we expect from the library we use
         try await withTempDir { tempDir in
-            let tempURL = URL(filePath: tempDir)
-            let fileA = tempURL.appending(path: "a.txt")
-            let fileB = tempURL.appending(path: "b.txt")
+            let tempURL = URL(fileURLWithPath: tempDir)
+            let fileA = tempURL.appendingPathComponent("a.txt")
+            let fileB = tempURL.appendingPathComponent("b.txt")
             try "a".write(to: fileA, atomically: true, encoding: .utf8)
             try "b".write(to: fileB, atomically: true, encoding: .utf8)
-            let zipFile = tempURL.appending(path: "out.zip")
+            let zipFile = tempURL.appendingPathComponent("out.zip")
             try Zipping.zip(paths: [fileA, fileB], to: zipFile)
-            XCTAssert(FileManager.default.fileExists(atPath: zipFile.path()))
+            XCTAssert(FileManager.default.fileExists(atPath: zipFile.path))
         }
     }
 
     func test_unzip() async throws {
         // Test basic unzip behaviour we expect from the library we use
         try await withTempDir { tempDir in
-            let tempURL = URL(filePath: tempDir)
+            let tempURL = URL(fileURLWithPath: tempDir)
             let zipFile = fixtureUrl(for: "out.zip")
-            let outDir = tempURL.appending(path: "out")
+            let outDir = tempURL.appendingPathComponent("out")
             try Zipping.unzip(from: zipFile, to: outDir)
-            XCTAssert(FileManager.default.fileExists(atPath: outDir.path()))
-            let fileA = outDir.appending(path: "a.txt")
-            let fileB = outDir.appending(path: "b.txt")
-            XCTAssert(FileManager.default.fileExists(atPath: fileA.path()))
-            XCTAssert(FileManager.default.fileExists(atPath: fileB.path()))
+            XCTAssert(FileManager.default.fileExists(atPath: outDir.path))
+            let fileA = outDir.appendingPathComponent("a.txt")
+            let fileB = outDir.appendingPathComponent("b.txt")
+            XCTAssert(FileManager.default.fileExists(atPath: fileA.path))
+            XCTAssert(FileManager.default.fileExists(atPath: fileB.path))
             XCTAssertEqual(try String(contentsOf: fileA), "a")
             XCTAssertEqual(try String(contentsOf: fileB), "b")
         }
