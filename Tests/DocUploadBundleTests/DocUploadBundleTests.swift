@@ -100,4 +100,17 @@ final class DocUploadBundleTests: XCTestCase {
                        .init(bucket: "spi-prod-docs", path: "owner/name/feature-2.0.0"))
     }
 
+    func test_issue_3069() async throws {
+        // https://github.com/SwiftPackageIndex/SwiftPackageIndex-Server/issues/3069
+        try await withTempDir { tempDir in
+            let url = fixtureUrl(for: "prod-apple-swift-metrics-main-e6a00d36.zip")
+            XCTAssertNoThrow(
+                try DocUploadBundle.unzip(bundle: url.path, outputPath: tempDir)
+            )
+            XCTAssert(FileManager.default.fileExists(atPath: tempDir + "/metadata.json"))
+            XCTAssert(FileManager.default.fileExists(atPath: tempDir + "/main/index.html"))
+            XCTAssert(FileManager.default.fileExists(atPath: tempDir + "/main/index/index.json"))
+        }
+    }
+
 }
