@@ -59,7 +59,7 @@ let package = Package(
             .product(name: "Zip", package: "Zip"),
             .product(name: "Dependencies", package: "swift-dependencies")
         ]),
-        .testTarget(name: "DocUploadBundleTests", dependencies: ["DocUploadBundle"]),
+        .testTarget(name: "DocUploadBundleTests", dependencies: ["DocUploadBundle"], exclude: ["Fixtures"]),
         .testTarget(name: "DocUploaderTests", dependencies: ["DocUploader"]),
     ]
 )

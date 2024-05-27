@@ -15,7 +15,6 @@
 import Foundation
 
 import Dependencies
-import Zip
 
 
 public struct DocUploadBundle {
@@ -107,26 +106,17 @@ public struct DocUploadBundle {
     }
 
     public func zip(to workDir: String) throws -> String {
-            let archiveURL = URL(fileURLWithPath: "\(workDir)/\(archiveName)")
-            let metadataURL = URL(fileURLWithPath: "\(workDir)/metadata.json")
-            try JSONEncoder().encode(metadata).write(to: metadataURL)
+        let archiveURL = URL(fileURLWithPath: "\(workDir)/\(archiveName)")
+        let metadataURL = URL(fileURLWithPath: "\(workDir)/metadata.json")
+        try JSONEncoder().encode(metadata).write(to: metadataURL)
 
-            try Zip.zipFiles(
-                paths: [metadataURL, URL(fileURLWithPath: sourcePath)],
-                zipFilePath: archiveURL,
-                password: nil,
-                progress: nil
-            )
+        try Zipper.zip(paths: [metadataURL, URL(fileURLWithPath: sourcePath)], to: archiveURL)
 
-            return archiveURL.path
+        return archiveURL.path
     }
 
     public static func unzip(bundle: String, outputPath: String, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws -> Metadata {
-        try Zip.unzipFile(URL(fileURLWithPath: bundle),
-                          destination: URL(fileURLWithPath: outputPath),
-                          overwrite: true,
-                          password: nil,
-                          fileOutputHandler: fileOutputHandler)
+        try Zipper.unzip(from: bundle, to: outputPath, fileOutputHandler: fileOutputHandler)
         let metadataURL = URL(fileURLWithPath: "\(outputPath)/metadata.json")
         let data = try Data(contentsOf: metadataURL)
         return try JSONDecoder().decode(Metadata.self, from: data)
