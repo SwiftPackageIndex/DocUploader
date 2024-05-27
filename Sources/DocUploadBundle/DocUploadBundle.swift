@@ -110,13 +110,13 @@ public struct DocUploadBundle {
         let metadataURL = URL(fileURLWithPath: "\(workDir)/metadata.json")
         try JSONEncoder().encode(metadata).write(to: metadataURL)
 
-        try Zipping.zip(paths: [metadataURL, URL(fileURLWithPath: sourcePath)], to: archiveURL)
+        try Zipper.zip(paths: [metadataURL, URL(fileURLWithPath: sourcePath)], to: archiveURL)
 
         return archiveURL.path
     }
 
     public static func unzip(bundle: String, outputPath: String, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws -> Metadata {
-        try Zipping.unzip(from: bundle, to: outputPath, fileOutputHandler: fileOutputHandler)
+        try Zipper.unzip(from: bundle, to: outputPath, fileOutputHandler: fileOutputHandler)
         let metadataURL = URL(fileURLWithPath: "\(outputPath)/metadata.json")
         let data = try Data(contentsOf: metadataURL)
         return try JSONDecoder().decode(Metadata.self, from: data)

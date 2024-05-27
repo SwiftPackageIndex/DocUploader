@@ -28,7 +28,7 @@ final class ZipTests: XCTestCase {
             try "a".write(to: fileA, atomically: true, encoding: .utf8)
             try "b".write(to: fileB, atomically: true, encoding: .utf8)
             let zipFile = tempURL.appendingPathComponent("out.zip")
-            try Zipping.zip(paths: [fileA, fileB], to: zipFile)
+            try Zipper.zip(paths: [fileA, fileB], to: zipFile)
             XCTAssert(FileManager.default.fileExists(atPath: zipFile.path))
         }
     }
@@ -39,7 +39,7 @@ final class ZipTests: XCTestCase {
             let tempURL = URL(fileURLWithPath: tempDir)
             let zipFile = fixtureUrl(for: "out.zip")
             let outDir = tempURL.appendingPathComponent("out")
-            try Zipping.unzip(from: zipFile, to: outDir)
+            try Zipper.unzip(from: zipFile, to: outDir)
             XCTAssert(FileManager.default.fileExists(atPath: outDir.path))
             let fileA = outDir.appendingPathComponent("a.txt")
             let fileB = outDir.appendingPathComponent("b.txt")

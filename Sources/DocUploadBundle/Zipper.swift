@@ -17,7 +17,7 @@ import Foundation
 import Zip
 
 
-enum Zipping {
+enum Zipper {
     static func zip(paths inputPaths: [URL], to outputPath: URL) throws {
         try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil)
     }
@@ -28,7 +28,7 @@ enum Zipping {
 }
 
 
-extension Zipping {
+extension Zipper {
     static func unzip(from inputPath: String, to outputPath: String, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
         try unzip(from: URL(fileURLWithPath: inputPath), to: URL(fileURLWithPath: outputPath), fileOutputHandler: fileOutputHandler)
     }
