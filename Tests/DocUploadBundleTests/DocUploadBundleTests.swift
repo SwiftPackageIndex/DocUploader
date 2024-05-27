@@ -107,6 +107,9 @@ final class DocUploadBundleTests: XCTestCase {
             XCTAssertNoThrow(
                 try DocUploadBundle.unzip(bundle: url.path(), outputPath: tempDir)
             )
+            XCTAssert(FileManager.default.fileExists(atPath: tempDir + "/metadata.json"))
+            XCTAssert(FileManager.default.fileExists(atPath: tempDir + "/main/index.html"))
+            XCTAssert(FileManager.default.fileExists(atPath: tempDir + "/main/index/index.json"))
         }
     }
 
