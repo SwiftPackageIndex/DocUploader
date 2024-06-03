@@ -22,5 +22,5 @@ docker run \
   --rm \
   --volume "$(pwd):/src" \
   --workdir "/src" \
-  swift:5.9.0-amazonlinux2 \
+  swift:5.10.0-amazonlinux2 \
   swift build --disable-automatic-resolution --product "$executable" -c release --static-swift-stdlib #-Xswiftc -cross-module-optimization 
