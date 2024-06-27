@@ -105,7 +105,7 @@ final class DocUploadBundleTests: XCTestCase {
         try await withTempDir { tempDir in
             let url = fixtureUrl(for: "prod-apple-swift-metrics-main-e6a00d36.zip")
             XCTAssertNoThrow(
-                try DocUploadBundle.unzip(bundle: url.path(), outputPath: tempDir)
+                try DocUploadBundle.unzip(bundle: url.path, outputPath: tempDir)
             )
             for pathComponent in ["metadata.json",
                                   "main/index.html",
@@ -119,14 +119,14 @@ final class DocUploadBundleTests: XCTestCase {
                         tempDir + "/main"].map(URL.init(fileURLWithPath:))
             let zipped = URL(fileURLWithPath: tempDir + "/out.zip")
             try Zipper.zip(paths: urls, to: zipped)
-            XCTAssertTrue(FileManager.default.fileExists(atPath: zipped.path()))
+            XCTAssertTrue(FileManager.default.fileExists(atPath: zipped.path))
             // unzip
             let out = URL(fileURLWithPath: tempDir + "/out")
             try Zipper.unzip(from: zipped, to: out)
-            XCTAssertTrue(FileManager.default.fileExists(atPath: out.path()))
-            XCTAssertTrue(FileManager.default.fileExists(atPath: out.appendingPathComponent("metadata.json").path()))
-            XCTAssertTrue(FileManager.default.fileExists(atPath: out.appendingPathComponent("main/index.html").path()))
-            XCTAssertTrue(FileManager.default.fileExists(atPath: out.appendingPathComponent("main/index/index.json").path()))
+            XCTAssertTrue(FileManager.default.fileExists(atPath: out.path))
+            XCTAssertTrue(FileManager.default.fileExists(atPath: out.appendingPathComponent("metadata.json").path))
+            XCTAssertTrue(FileManager.default.fileExists(atPath: out.appendingPathComponent("main/index.html").path))
+            XCTAssertTrue(FileManager.default.fileExists(atPath: out.appendingPathComponent("main/index/index.json").path))
         }
     }
 
