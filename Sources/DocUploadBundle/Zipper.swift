@@ -14,20 +14,16 @@
 
 import Foundation
 
-import ZIPFoundation
+import Zip
 
 
 enum Zipper {
     static func zip(paths inputPaths: [URL], to outputPath: URL) throws {
-        let archive = try Archive(url: outputPath, accessMode: .create)
-        for url in inputPaths {
-            try archive.addEntry(with: url.lastPathComponent, fileURL: url)
-        }
+        try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil)
     }
 
     static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
-        try FileManager.default.createDirectory(at: outputPath, withIntermediateDirectories: true)
-        try FileManager.default.unzipItem(at: inputPath, to: outputPath)
+        try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler)
     }
 }
 

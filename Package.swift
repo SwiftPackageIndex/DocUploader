@@ -40,7 +40,7 @@ let package = Package(
         .package(url: "https://github.com/swift-server/swift-aws-lambda-events.git", from: "0.1.0"),
         .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", from: "1.0.0-alpha.1"),
         .package(url: "https://github.com/soto-project/soto-s3-file-transfer.git", from: "1.2.0"),
-        .package(url: "https://github.com/weichsel/ZIPFoundation.git", from: "0.9.19"),
+        .package(url: "https://github.com/marmelroy/Zip.git", from: "2.1.2"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "1.0.0")
     ],
     targets: [
@@ -56,7 +56,7 @@ let package = Package(
             linkerSettings: linkerSettings
         ),
         .target(name: "DocUploadBundle", dependencies: [
-            .product(name: "ZIPFoundation", package: "zipfoundation"),
+            .product(name: "Zip", package: "Zip"),
             .product(name: "Dependencies", package: "swift-dependencies")
         ]),
         .testTarget(name: "DocUploadBundleTests", dependencies: ["DocUploadBundle"], exclude: ["Fixtures"]),
