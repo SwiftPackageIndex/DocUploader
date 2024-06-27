@@ -18,9 +18,29 @@ import XCTest
 
 
 final class ZipTests: XCTestCase {
+    
+    func test_unzip() async throws {
+        // Test basic unzip behaviour we expect from the library we use
+        try await withTempDir { tempDir in
+            let tempURL = URL(fileURLWithPath: tempDir)
+            let zipFile = fixtureUrl(for: "out.zip")
+            let outDir = tempURL.appendingPathComponent("out")
+            try Zipper.unzip(from: zipFile, to: outDir)
+            XCTAssert(FileManager.default.fileExists(atPath: outDir.path))
 
-    func test_zip() async throws {
-        // Test basic zip behaviour we expect from the library we use
+            // out/a.txt
+            // out/subdir/b.txt
+            let fileA = outDir.appendingPathComponent("a.txt")
+            let fileB = outDir.appendingPathComponent("subdir").appendingPathComponent("b.txt")
+            XCTAssert(FileManager.default.fileExists(atPath: fileA.path))
+            XCTAssert(FileManager.default.fileExists(atPath: fileB.path))
+            XCTAssertEqual(try String(contentsOf: fileA), "a")
+            XCTAssertEqual(try String(contentsOf: fileB), "b")
+        }
+    }
+
+    func test_zip_roundtrip() async throws {
+        // Test basic zip roundtrip
         try await withTempDir { tempDir in
             //  temp
             let tempURL = URL(fileURLWithPath: tempDir)
@@ -40,26 +60,20 @@ final class ZipTests: XCTestCase {
             let zipFile = tempURL.appendingPathComponent("out.zip")
             try Zipper.zip(paths: [fileA, subdir], to: zipFile)
             XCTAssert(FileManager.default.fileExists(atPath: zipFile.path))
-        }
-    }
 
-    func test_unzip() async throws {
-        // Test basic unzip behaviour we expect from the library we use
-        try await withTempDir { tempDir in
-            let tempURL = URL(fileURLWithPath: tempDir)
-            let zipFile = fixtureUrl(for: "out.zip")
-            let outDir = tempURL.appendingPathComponent("out")
-            try Zipper.unzip(from: zipFile, to: outDir)
-            XCTAssert(FileManager.default.fileExists(atPath: outDir.path))
-
-            // out/a.txt
-            // out/subdir/b.txt
-            let fileA = outDir.appendingPathComponent("a.txt")
-            let fileB = outDir.appendingPathComponent("subdir").appendingPathComponent("b.txt")
-            XCTAssert(FileManager.default.fileExists(atPath: fileA.path))
-            XCTAssert(FileManager.default.fileExists(atPath: fileB.path))
-            XCTAssertEqual(try String(contentsOf: fileA), "a")
-            XCTAssertEqual(try String(contentsOf: fileB), "b")
+            do { // unzip what we zipped and check results
+                let roundtrip = tempURL.appendingPathComponent("roundtrip")
+                try Zipper.unzip(from: zipFile, to: roundtrip)
+                XCTAssert(FileManager.default.fileExists(atPath: roundtrip.path))
+                // roundtrip/a.txt
+                // roundtrip/subdir/b.txt
+                let fileA = roundtrip.appendingPathComponent("a.txt")
+                let fileB = roundtrip.appendingPathComponent("subdir").appendingPathComponent("b.txt")
+                XCTAssert(FileManager.default.fileExists(atPath: fileA.path))
+                XCTAssert(FileManager.default.fileExists(atPath: fileB.path))
+                XCTAssertEqual(try String(contentsOf: fileA), "a")
+                XCTAssertEqual(try String(contentsOf: fileB), "b")
+            }
         }
     }
 
