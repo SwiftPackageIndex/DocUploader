@@ -57,6 +57,14 @@ final class ZipTests: XCTestCase {
             let fileB = subdir.appendingPathComponent("b.txt")
             try "b".write(to: fileB, atomically: true, encoding: .utf8)
 
+            // temp/subdir/subsubdir
+            let subsubdir = subdir.appendingPathComponent("subsubdir")
+            try FileManager.default.createDirectory(at: subsubdir, withIntermediateDirectories: false)
+
+            // temp/subdir/subdir/c.txt
+            let fileC = subsubdir.appendingPathComponent("c.txt")
+            try "c".write(to: fileC, atomically: true, encoding: .utf8)
+
             let zipFile = tempURL.appendingPathComponent("out.zip")
             try Zipper.zip(paths: [fileA, subdir], to: zipFile)
             XCTAssert(FileManager.default.fileExists(atPath: zipFile.path))
@@ -69,10 +77,13 @@ final class ZipTests: XCTestCase {
                 // roundtrip/subdir/b.txt
                 let fileA = roundtrip.appendingPathComponent("a.txt")
                 let fileB = roundtrip.appendingPathComponent("subdir").appendingPathComponent("b.txt")
+                let fileC = roundtrip.appendingPathComponent("subdir").appendingPathComponent("subsubdir").appendingPathComponent("c.txt")
                 XCTAssert(FileManager.default.fileExists(atPath: fileA.path))
                 XCTAssert(FileManager.default.fileExists(atPath: fileB.path))
+                XCTAssert(FileManager.default.fileExists(atPath: fileC.path))
                 XCTAssertEqual(try String(contentsOf: fileA), "a")
                 XCTAssertEqual(try String(contentsOf: fileB), "b")
+                XCTAssertEqual(try String(contentsOf: fileC), "c")
             }
         }
     }
