@@ -14,16 +14,40 @@
 
 import Foundation
 
-import Zip
+import SwiftZip
+
+
+extension URL {
+    var isDirectory: Bool {
+       (try? resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
+    }
+}
 
 
 enum Zipper {
     static func zip(paths inputPaths: [URL], to outputPath: URL) throws {
-        try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil)
+        let archive = try ZipMutableArchive(url: outputPath, flags: [.create])
+        for url in inputPaths {
+            if url.isDirectory {
+                try archive.addDirectory(name: url.lastPathComponent)
+            } else {
+                try archive.addFile(name: url.lastPathComponent, source: .init(url: url))
+            }
+        }
     }
 
     static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
-        try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler)
+        try FileManager.default.createDirectory(at: outputPath, withIntermediateDirectories: true)
+        let archive = try ZipArchive(url: inputPath)
+        for entry in archive.entries() {
+            let name = try entry.getName()
+            let output = outputPath.appendingPathComponent(name)
+            let parentDir = output.deletingLastPathComponent()
+            if !FileManager.default.fileExists(atPath: parentDir.path) {
+                try FileManager.default.createDirectory(at: parentDir, withIntermediateDirectories: true)
+            }
+            try entry.data().write(to: output)
+        }
     }
 }
 

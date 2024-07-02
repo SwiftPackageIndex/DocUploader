@@ -235,21 +235,21 @@
       }
     },
     {
+      "identity" : "swiftzip",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SwiftZip/SwiftZip.git",
+      "state" : {
+        "revision" : "97c2303d0fcc0bb6ae78a93ee10bdb91a1467c8f",
+        "version" : "0.0.5"
+      }
+    },
+    {
       "identity" : "xctest-dynamic-overlay",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/xctest-dynamic-overlay",
       "state" : {
         "revision" : "b13b1d1a8e787a5ffc71ac19dcaf52183ab27ba2",
         "version" : "1.1.1"
-      }
-    },
-    {
-      "identity" : "zip",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/marmelroy/Zip.git",
-      "state" : {
-        "revision" : "67fa55813b9e7b3b9acee9c0ae501def28746d76",
-        "version" : "2.1.2"
       }
     }
   ],
