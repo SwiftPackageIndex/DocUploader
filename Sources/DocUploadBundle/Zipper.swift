@@ -23,15 +23,7 @@ enum Zipper {
     }
 
     static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
-        do {
-            try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler)
-        } catch ZipError.unzipFail {
-            // Try OS level unzip as a fallback
-            // See https://github.com/SwiftPackageIndex/SwiftPackageIndex-Server/issues/3069
-            let unzip = URL(fileURLWithPath: "/usr/bin/unzip")
-            let process = try Process.run(unzip, arguments: ["-q", inputPath.path, "-d", outputPath.path])
-            process.waitUntilExit()
-        }
+        try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler)
     }
 }
 
