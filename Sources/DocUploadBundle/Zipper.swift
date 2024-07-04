@@ -32,7 +32,7 @@ public enum Zipper {
                     let process = Process()
                     process.executableURL = zip
                     process.arguments = ["-q", "-r", outputPath.path] + inputPaths.map(\.lastPathComponent)
-                    process.currentDirectoryURL = URL(fileURLWithPath: cwd)
+                    process.currentDirectoryURL = cwd.map(URL.init(fileURLWithPath:))
                     try process.run()
                     process.waitUntilExit()
                 } catch {
@@ -50,7 +50,7 @@ public enum Zipper {
 
     public enum Method {
         case library
-        case zipTool(workingDirectory: String)
+        case zipTool(workingDirectory: String? = nil)
     }
 
     public enum Error: Swift.Error {
