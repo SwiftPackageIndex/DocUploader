@@ -43,7 +43,11 @@ public enum Zipper {
     }
 
     public static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
-        try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler)
+        do { try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler) }
+        catch ZipError.fileNotFound { throw Error.fileNotFound }
+        catch ZipError.unzipFail { throw Error.unzipFail }
+        catch ZipError.zipFail { throw Error.zipFail }
+        catch { throw Error.generic(reason: "\(error)") }
     }
 
     static let zip = URL(fileURLWithPath: "/usr/bin/zip")
