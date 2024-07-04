@@ -88,4 +88,53 @@ final class ZipTests: XCTestCase {
         }
     }
 
+    func test_zip_roundtrip_shellTool() async throws {
+        // Test basic zip roundtrip with the shellTool method
+        try await withTempDir { tempDir in
+            //  temp
+            let tempURL = URL(fileURLWithPath: tempDir)
+
+            // temp/a.txt
+            let fileA = tempURL.appendingPathComponent("a.txt")
+            try "a".write(to: fileA, atomically: true, encoding: .utf8)
+
+            // temp/subdir/
+            let subdir = tempURL.appendingPathComponent("subdir")
+            try FileManager.default.createDirectory(at: subdir, withIntermediateDirectories: false)
+
+            // temp/subdir/b.txt
+            let fileB = subdir.appendingPathComponent("b.txt")
+            try "b".write(to: fileB, atomically: true, encoding: .utf8)
+
+            // temp/subdir/subsubdir
+            let subsubdir = subdir.appendingPathComponent("subsubdir")
+            try FileManager.default.createDirectory(at: subsubdir, withIntermediateDirectories: false)
+
+            // temp/subdir/subdir/c.txt
+            let fileC = subsubdir.appendingPathComponent("c.txt")
+            try "c".write(to: fileC, atomically: true, encoding: .utf8)
+
+            let zipFile = tempURL.appendingPathComponent("out.zip")
+            try Zipper.zip(paths: [fileA, subdir], to: zipFile, method: .zipTool(workingDirectory: tempDir))
+            XCTAssert(FileManager.default.fileExists(atPath: zipFile.path))
+
+            do { // unzip what we zipped and check results
+                let roundtrip = tempURL.appendingPathComponent("roundtrip")
+                try Zipper.unzip(from: zipFile, to: roundtrip)
+                XCTAssert(FileManager.default.fileExists(atPath: roundtrip.path))
+                // roundtrip/a.txt
+                // roundtrip/subdir/b.txt
+                let fileA = roundtrip.appendingPathComponent("a.txt")
+                let fileB = roundtrip.appendingPathComponent("subdir").appendingPathComponent("b.txt")
+                let fileC = roundtrip.appendingPathComponent("subdir").appendingPathComponent("subsubdir").appendingPathComponent("c.txt")
+                XCTAssert(FileManager.default.fileExists(atPath: fileA.path))
+                XCTAssert(FileManager.default.fileExists(atPath: fileB.path))
+                XCTAssert(FileManager.default.fileExists(atPath: fileC.path))
+                XCTAssertEqual(try String(contentsOf: fileA), "a")
+                XCTAssertEqual(try String(contentsOf: fileB), "b")
+                XCTAssertEqual(try String(contentsOf: fileC), "c")
+            }
+        }
+    }
+
 }

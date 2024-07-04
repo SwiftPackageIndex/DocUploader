@@ -18,12 +18,31 @@ import Zip
 
 
 enum Zipper {
-    static func zip(paths inputPaths: [URL], to outputPath: URL) throws {
-        try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil)
+    static func zip(paths inputPaths: [URL], to outputPath: URL, method: Method = .library) throws {
+        switch method {
+            case .library:
+                try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil)
+
+            case let .zipTool(cwd):
+                let process = Process()
+                process.executableURL = zip
+                process.arguments = ["-q", "-r", outputPath.path] + inputPaths.map(\.lastPathComponent)
+                process.currentDirectoryURL = URL(fileURLWithPath: cwd)
+                try process.run()
+                process.waitUntilExit()
+
+        }
     }
 
     static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
         try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler)
+    }
+
+    static let zip = URL(fileURLWithPath: "/usr/bin/zip")
+
+    enum Method {
+        case library
+        case zipTool(workingDirectory: String)
     }
 }
 
