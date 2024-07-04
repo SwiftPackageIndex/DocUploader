@@ -17,32 +17,47 @@ import Foundation
 import Zip
 
 
-enum Zipper {
-    static func zip(paths inputPaths: [URL], to outputPath: URL, method: Method = .library) throws {
+public enum Zipper {
+    public static func zip(paths inputPaths: [URL], to outputPath: URL, method: Method = .library) throws {
         switch method {
             case .library:
-                try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil)
+                do { try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil) } 
+                catch ZipError.fileNotFound { throw Error.fileNotFound }
+                catch ZipError.unzipFail { throw Error.unzipFail }
+                catch ZipError.zipFail { throw Error.zipFail }
+                catch { throw Error.generic(reason: "\(error)") }
 
             case let .zipTool(cwd):
-                let process = Process()
-                process.executableURL = zip
-                process.arguments = ["-q", "-r", outputPath.path] + inputPaths.map(\.lastPathComponent)
-                process.currentDirectoryURL = URL(fileURLWithPath: cwd)
-                try process.run()
-                process.waitUntilExit()
+                do {
+                    let process = Process()
+                    process.executableURL = zip
+                    process.arguments = ["-q", "-r", outputPath.path] + inputPaths.map(\.lastPathComponent)
+                    process.currentDirectoryURL = URL(fileURLWithPath: cwd)
+                    try process.run()
+                    process.waitUntilExit()
+                } catch {
+                    throw Error.generic(reason: "\(error)")
+                }
 
         }
     }
 
-    static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
+    public static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
         try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler)
     }
 
     static let zip = URL(fileURLWithPath: "/usr/bin/zip")
 
-    enum Method {
+    public enum Method {
         case library
         case zipTool(workingDirectory: String)
+    }
+
+    public enum Error: Swift.Error {
+        case generic(reason: String)
+        case fileNotFound
+        case unzipFail
+        case zipFail
     }
 }
 

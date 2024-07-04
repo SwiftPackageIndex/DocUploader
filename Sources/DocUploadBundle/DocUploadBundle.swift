@@ -105,12 +105,12 @@ public struct DocUploadBundle {
         )
     }
 
-    public func zip(to workDir: String) throws -> String {
+    public func zip(to workDir: String, method: Zipper.Method = .library) throws -> String {
         let archiveURL = URL(fileURLWithPath: "\(workDir)/\(archiveName)")
         let metadataURL = URL(fileURLWithPath: "\(workDir)/metadata.json")
         try JSONEncoder().encode(metadata).write(to: metadataURL)
 
-        try Zipper.zip(paths: [metadataURL, URL(fileURLWithPath: sourcePath)], to: archiveURL)
+        try Zipper.zip(paths: [metadataURL, URL(fileURLWithPath: sourcePath)], to: archiveURL, method: method)
 
         return archiveURL.path
     }
