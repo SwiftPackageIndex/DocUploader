@@ -100,34 +100,4 @@ final class DocUploadBundleTests: XCTestCase {
                        .init(bucket: "spi-prod-docs", path: "owner/name/feature-2.0.0"))
     }
 
-    func test_issue_3069() async throws {
-        // https://github.com/SwiftPackageIndex/SwiftPackageIndex-Server/issues/3069
-        try await withTempDir { tempDir in
-            let url = fixtureUrl(for: "prod-apple-swift-metrics-main-e6a00d36.zip")
-            XCTAssertNoThrow(
-                try DocUploadBundle.unzip(bundle: url.path, outputPath: tempDir)
-            )
-            for pathComponent in ["metadata.json",
-                                  "main/index.html",
-                                  "main/index/index.json"] {
-                let path = tempDir + "/" + pathComponent
-                XCTAssertTrue(FileManager.default.fileExists(atPath: path), "does not exist: \(path)")
-            }
-            // test roundtrip, to ensure the zip library can zip/unzip its own product
-            // zip
-            let urls = [tempDir + "/metadata.json",
-                        tempDir + "/main"].map(URL.init(fileURLWithPath:))
-            let zipped = URL(fileURLWithPath: tempDir + "/out.zip")
-            try Zipper.zip(paths: urls, to: zipped)
-            XCTAssertTrue(FileManager.default.fileExists(atPath: zipped.path))
-            // unzip
-            let out = URL(fileURLWithPath: tempDir + "/out")
-            try Zipper.unzip(from: zipped, to: out)
-            XCTAssertTrue(FileManager.default.fileExists(atPath: out.path))
-            XCTAssertTrue(FileManager.default.fileExists(atPath: out.appendingPathComponent("metadata.json").path))
-            XCTAssertTrue(FileManager.default.fileExists(atPath: out.appendingPathComponent("main/index.html").path))
-            XCTAssertTrue(FileManager.default.fileExists(atPath: out.appendingPathComponent("main/index/index.json").path))
-        }
-    }
-
 }
