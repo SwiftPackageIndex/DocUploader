@@ -89,6 +89,8 @@ final class ZipTests: XCTestCase {
     }
 
     func test_zip_roundtrip_shellTool() async throws {
+        try XCTSkipIf(!FileManager.default.fileExists(atPath: Zipper.zip.path))
+        
         // Test basic zip roundtrip with the shellTool method
         try await withTempDir { tempDir in
             //  temp
