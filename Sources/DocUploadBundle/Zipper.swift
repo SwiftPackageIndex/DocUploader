@@ -38,7 +38,6 @@ public enum Zipper {
                 } catch {
                     throw Error.generic(reason: "\(error)")
                 }
-
         }
     }
 

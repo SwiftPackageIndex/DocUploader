@@ -117,7 +117,6 @@ public struct DocUploadBundle {
             case .zipTool(.none):
                 // By default, run the zip tool in the working directory
                 try Zipper.zip(paths: [metadataURL, URL(fileURLWithPath: sourcePath)], to: archiveURL, method: .zipTool(workingDirectory: workDir))
-
         }
 
         return archiveURL.path
