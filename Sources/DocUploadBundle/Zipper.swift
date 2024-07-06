@@ -77,7 +77,7 @@ public enum Zipper {
 
     public enum Method {
         case library
-        case zipTool(workingDirectory: String? = nil)
+        case zipTool
     }
 
     public enum Error: Swift.Error {

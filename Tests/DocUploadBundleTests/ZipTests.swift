@@ -117,7 +117,7 @@ final class ZipTests: XCTestCase {
             try "c".write(to: fileC, atomically: true, encoding: .utf8)
 
             let zipFile = tempURL.appendingPathComponent("out.zip")
-            try Zipper.zip(paths: [fileA, subdir], to: zipFile, method: .zipTool(workingDirectory: tempDir))
+            try Zipper.zip(paths: [fileA, subdir], to: zipFile, method: .zipTool)
             XCTAssert(FileManager.default.fileExists(atPath: zipFile.path))
 
             do { // unzip what we zipped and check results
@@ -161,7 +161,7 @@ final class ZipTests: XCTestCase {
 
             // MUT
             let zipFile = tempURL.appendingPathComponent("out.zip")
-            try Zipper.zip(paths: [metadataURL, sourceURL], to: zipFile, method: .zipTool(workingDirectory: tempDir))
+            try Zipper.zip(paths: [metadataURL, sourceURL], to: zipFile, method: .zipTool)
 
             do {  // validate
                 let unzipDir = tempURL.appendingPathComponent("unzip")
