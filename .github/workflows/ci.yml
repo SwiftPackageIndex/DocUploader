@@ -26,6 +26,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Run tests
         run: docker run -v "$PWD":/host -w /host swift:5.10.0-amazonlinux2 swift test
