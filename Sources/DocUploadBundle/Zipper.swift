@@ -21,20 +21,37 @@ public enum Zipper {
     public static func zip(paths inputPaths: [URL], to outputPath: URL, method: Method = .library) throws {
         switch method {
             case .library:
-                do { try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil) } 
-                catch ZipError.fileNotFound { throw Error.fileNotFound }
-                catch ZipError.unzipFail { throw Error.unzipFail }
-                catch ZipError.zipFail { throw Error.zipFail }
-                catch { throw Error.generic(reason: "\(error)") }
-
-            case let .zipTool(cwd):
                 do {
-                    let process = Process()
-                    process.executableURL = zip
-                    process.arguments = ["-q", "-r", outputPath.path] + inputPaths.map(\.lastPathComponent)
-                    process.currentDirectoryURL = cwd.map(URL.init(fileURLWithPath:))
-                    try process.run()
-                    process.waitUntilExit()
+                    try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil)
+                } catch let error as ZipError {
+                    switch error {
+                        case .fileNotFound: throw Error.fileNotFound
+                        case .unzipFail: throw Error.unzipFail
+                        case .zipFail: throw Error.zipFail
+                    }
+                }
+                catch {
+                    throw Error.generic(reason: "\(error)")
+                }
+
+            case .zipTool:
+                do {
+                    try withTempDir { tempDir in
+                        let tempURL = URL(fileURLWithPath: tempDir)
+                        // Copy inputs to tempDir
+                        for source in inputPaths {
+                            let target = tempURL.appendingPathComponent(source.lastPathComponent)
+                            try FileManager.default.copyItem(at: source, to: target)
+                        }
+
+                        // Run zip
+                        let process = Process()
+                        process.executableURL = zip
+                        process.arguments = ["-q", "-r", outputPath.path] + inputPaths.map(\.lastPathComponent)
+                        process.currentDirectoryURL = tempURL
+                        try process.run()
+                        process.waitUntilExit()
+                    }
                 } catch {
                     throw Error.generic(reason: "\(error)")
                 }
@@ -42,18 +59,25 @@ public enum Zipper {
     }
 
     public static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
-        do { try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler) }
-        catch ZipError.fileNotFound { throw Error.fileNotFound }
-        catch ZipError.unzipFail { throw Error.unzipFail }
-        catch ZipError.zipFail { throw Error.zipFail }
-        catch { throw Error.generic(reason: "\(error)") }
+        do {
+            try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler)
+        } catch let error as ZipError {
+            switch error {
+                case .fileNotFound: throw Error.fileNotFound
+                case .unzipFail: throw Error.unzipFail
+                case .zipFail: throw Error.zipFail
+            }
+        }
+        catch {
+            throw Error.generic(reason: "\(error)")
+        }
     }
 
     static let zip = URL(fileURLWithPath: "/usr/bin/zip")
 
     public enum Method {
         case library
-        case zipTool(workingDirectory: String? = nil)
+        case zipTool
     }
 
     public enum Error: Swift.Error {
