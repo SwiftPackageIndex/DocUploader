@@ -34,14 +34,24 @@ public enum Zipper {
                     throw Error.generic(reason: "\(error)")
                 }
 
-            case let .zipTool(cwd):
+            case .zipTool:
                 do {
-                    let process = Process()
-                    process.executableURL = zip
-                    process.arguments = ["-q", "-r", outputPath.path] + inputPaths.map(\.lastPathComponent)
-                    process.currentDirectoryURL = cwd.map(URL.init(fileURLWithPath:))
-                    try process.run()
-                    process.waitUntilExit()
+                    try withTempDir { tempDir in
+                        let tempURL = URL(fileURLWithPath: tempDir)
+                        // Copy inputs to tempDir
+                        for source in inputPaths {
+                            let target = tempURL.appendingPathComponent(source.lastPathComponent)
+                            try FileManager.default.copyItem(at: source, to: target)
+                        }
+
+                        // Run zip
+                        let process = Process()
+                        process.executableURL = zip
+                        process.arguments = ["-q", "-r", outputPath.path] + inputPaths.map(\.lastPathComponent)
+                        process.currentDirectoryURL = tempURL
+                        try process.run()
+                        process.waitUntilExit()
+                    }
                 } catch {
                     throw Error.generic(reason: "\(error)")
                 }
