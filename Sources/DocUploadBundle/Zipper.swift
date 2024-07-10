@@ -15,6 +15,7 @@
 import Foundation
 
 import Zip
+import ZIPFoundation
 
 
 enum Zipper {
@@ -23,7 +24,10 @@ enum Zipper {
     }
 
     static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
-        try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler)
+        // Use ZipFoundation to unzip because of an archive that can't be round-tripped with marmelroy/Zip
+        // https://github.com/SwiftPackageIndex/SwiftPackageIndex-Server/issues/3137
+        try FileManager.default.createDirectory(at: outputPath, withIntermediateDirectories: true)
+        try FileManager.default.unzipItem(at: inputPath, to: outputPath)
     }
 }
 
