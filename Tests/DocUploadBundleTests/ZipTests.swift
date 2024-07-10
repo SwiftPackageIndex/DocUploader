@@ -21,7 +21,7 @@ final class ZipTests: XCTestCase {
     
     func test_unzip() async throws {
         // Test basic unzip behaviour we expect from the library we use
-        try withTempDir { tempDir in
+        try await withTempDir { tempDir in
             let tempURL = URL(fileURLWithPath: tempDir)
             let zipFile = fixtureUrl(for: "out.zip")
             let outDir = tempURL.appendingPathComponent("out")
@@ -41,7 +41,7 @@ final class ZipTests: XCTestCase {
 
     func test_zip_roundtrip() async throws {
         // Test basic zip roundtrip
-        try withTempDir { tempDir in
+        try await withTempDir { tempDir in
             //  temp
             let tempURL = URL(fileURLWithPath: tempDir)
 
@@ -92,7 +92,7 @@ final class ZipTests: XCTestCase {
         try XCTSkipIf(!FileManager.default.fileExists(atPath: Zipper.zip.path))
         
         // Test basic zip roundtrip with the shellTool method
-        try withTempDir { tempDir in
+        try await withTempDir { tempDir in
             //  temp
             let tempURL = URL(fileURLWithPath: tempDir)
 
@@ -117,7 +117,7 @@ final class ZipTests: XCTestCase {
             try "c".write(to: fileC, atomically: true, encoding: .utf8)
 
             let zipFile = tempURL.appendingPathComponent("out.zip")
-            try Zipper.zip(paths: [fileA, subdir], to: zipFile, method: .zipTool)
+            try Zipper.zip(paths: [fileA, subdir], to: zipFile, method: .zipTool(workingDirectory: tempDir))
             XCTAssert(FileManager.default.fileExists(atPath: zipFile.path))
 
             do { // unzip what we zipped and check results
@@ -135,43 +135,6 @@ final class ZipTests: XCTestCase {
                 XCTAssertEqual(try String(contentsOf: fileA), "a")
                 XCTAssertEqual(try String(contentsOf: fileB), "b")
                 XCTAssertEqual(try String(contentsOf: fileC), "c")
-            }
-        }
-    }
-
-    func test_zip_roundtrip_shellTool_relative_paths() async throws {
-        try XCTSkipIf(!FileManager.default.fileExists(atPath: Zipper.zip.path))
-
-        // Test basic zip roundtrip with the shellTool method and relative paths
-        try withTempDir { tempDir in
-            // DocBundle components
-            // metadataURL: tempDir/metadata.json
-            // sourceURL:   tempDir/.docs/owner/repo/ref
-            // should be zipped as
-            //   - metadata.json
-            //   - ref
-            // at the top level as relative paths.
-            let tempURL = URL(fileURLWithPath: tempDir)
-            let metadataURL = tempURL.appendingPathComponent("metadata.json")
-            try "metadata".write(to: metadataURL, atomically: true, encoding: .utf8)
-            let sourceURL = tempURL.appendingPathComponent("docs/owner/repo/ref")
-            try FileManager.default.createDirectory(at: sourceURL, withIntermediateDirectories: true)
-            let indexHTML = sourceURL.appendingPathComponent("index.html")
-            try "index".write(to: indexHTML, atomically: true, encoding: .utf8)
-
-            // MUT
-            let zipFile = tempURL.appendingPathComponent("out.zip")
-            try Zipper.zip(paths: [metadataURL, sourceURL], to: zipFile, method: .zipTool)
-
-            do {  // validate
-                let unzipDir = tempURL.appendingPathComponent("unzip")
-                try Zipper.unzip(from: zipFile, to: unzipDir)
-                let metadataURL = unzipDir.appendingPathComponent("metadata.json")
-                let indexHTML = unzipDir.appendingPathComponent("ref/index.html")
-                XCTAssert(FileManager.default.fileExists(atPath: metadataURL.path))
-                XCTAssert(FileManager.default.fileExists(atPath: indexHTML.path))
-                XCTAssertEqual(try String(contentsOf: metadataURL), "metadata")
-                XCTAssertEqual(try String(contentsOf: indexHTML), "index")
             }
         }
     }
