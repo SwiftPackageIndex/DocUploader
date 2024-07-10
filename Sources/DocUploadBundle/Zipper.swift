@@ -17,50 +17,21 @@ import Foundation
 import Zip
 
 
-public enum Zipper {
-    public static func zip(paths inputPaths: [URL], to outputPath: URL, method: Method = .library) throws {
-        switch method {
-            case .library:
-                do { try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil) } 
-                catch ZipError.fileNotFound { throw Error.fileNotFound }
-                catch ZipError.unzipFail { throw Error.unzipFail }
-                catch ZipError.zipFail { throw Error.zipFail }
-                catch { throw Error.generic(reason: "\(error)") }
+enum Zipper {
+    static func zip(paths inputPaths: [URL], to outputPath: URL) throws {
+        try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil)
+    }
 
-            case let .zipTool(cwd):
-                do {
-                    let process = Process()
-                    process.executableURL = zip
-                    process.arguments = ["-q", "-r", outputPath.path] + inputPaths.map(\.lastPathComponent)
-                    process.currentDirectoryURL = cwd.map(URL.init(fileURLWithPath:))
-                    try process.run()
-                    process.waitUntilExit()
-                } catch {
-                    throw Error.generic(reason: "\(error)")
-                }
+    static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
+        do {
+            try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler)
+        } catch ZipError.unzipFail {
+            // Try OS level unzip as a fallback
+            // See https://github.com/SwiftPackageIndex/SwiftPackageIndex-Server/issues/3069
+            let unzip = URL(fileURLWithPath: "/usr/bin/unzip")
+            let process = try Process.run(unzip, arguments: ["-q", inputPath.path, "-d", outputPath.path])
+            process.waitUntilExit()
         }
-    }
-
-    public static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
-        do { try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler) }
-        catch ZipError.fileNotFound { throw Error.fileNotFound }
-        catch ZipError.unzipFail { throw Error.unzipFail }
-        catch ZipError.zipFail { throw Error.zipFail }
-        catch { throw Error.generic(reason: "\(error)") }
-    }
-
-    static let zip = URL(fileURLWithPath: "/usr/bin/zip")
-
-    public enum Method {
-        case library
-        case zipTool(workingDirectory: String? = nil)
-    }
-
-    public enum Error: Swift.Error {
-        case generic(reason: String)
-        case fileNotFound
-        case unzipFail
-        case zipFail
     }
 }
 
