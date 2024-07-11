@@ -15,76 +15,19 @@
 import Foundation
 
 import Zip
+import ZIPFoundation
 
 
-public enum Zipper {
-    public static func zip(paths inputPaths: [URL], to outputPath: URL, method: Method = .library) throws {
-        switch method {
-            case .library:
-                do {
-                    try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil)
-                } catch let error as ZipError {
-                    switch error {
-                        case .fileNotFound: throw Error.fileNotFound
-                        case .unzipFail: throw Error.unzipFail
-                        case .zipFail: throw Error.zipFail
-                    }
-                }
-                catch {
-                    throw Error.generic(reason: "\(error)")
-                }
-
-            case .zipTool:
-                do {
-                    try withTempDir { tempDir in
-                        let tempURL = URL(fileURLWithPath: tempDir)
-                        // Copy inputs to tempDir
-                        for source in inputPaths {
-                            let target = tempURL.appendingPathComponent(source.lastPathComponent)
-                            try FileManager.default.copyItem(at: source, to: target)
-                        }
-
-                        // Run zip
-                        let process = Process()
-                        process.executableURL = zip
-                        process.arguments = ["-q", "-r", outputPath.path] + inputPaths.map(\.lastPathComponent)
-                        process.currentDirectoryURL = tempURL
-                        try process.run()
-                        process.waitUntilExit()
-                    }
-                } catch {
-                    throw Error.generic(reason: "\(error)")
-                }
-        }
+enum Zipper {
+    static func zip(paths inputPaths: [URL], to outputPath: URL) throws {
+        try Zip.zipFiles(paths: inputPaths, zipFilePath: outputPath, password: nil, progress: nil)
     }
 
-    public static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
-        do {
-            try Zip.unzipFile(inputPath, destination: outputPath, overwrite: true, password: nil, fileOutputHandler: fileOutputHandler)
-        } catch let error as ZipError {
-            switch error {
-                case .fileNotFound: throw Error.fileNotFound
-                case .unzipFail: throw Error.unzipFail
-                case .zipFail: throw Error.zipFail
-            }
-        }
-        catch {
-            throw Error.generic(reason: "\(error)")
-        }
-    }
-
-    static let zip = URL(fileURLWithPath: "/usr/bin/zip")
-
-    public enum Method {
-        case library
-        case zipTool
-    }
-
-    public enum Error: Swift.Error {
-        case generic(reason: String)
-        case fileNotFound
-        case unzipFail
-        case zipFail
+    static func unzip(from inputPath: URL, to outputPath: URL, fileOutputHandler: ((_ unzippedFile: URL) -> Void)? = nil) throws {
+        // Use ZipFoundation to unzip because of an archive that can't be round-tripped with marmelroy/Zip
+        // https://github.com/SwiftPackageIndex/SwiftPackageIndex-Server/issues/3137
+        try FileManager.default.createDirectory(at: outputPath, withIntermediateDirectories: true)
+        try FileManager.default.unzipItem(at: inputPath, to: outputPath)
     }
 }
 

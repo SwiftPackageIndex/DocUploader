@@ -60,7 +60,7 @@ Instead, use the `dev` environment to validate a new release as follows:
     ```
   Use the doc bundle included in this repo or download a `dev-` doc bundle from `spi-docs-inbox` on S3.
 
-- Check the [`DocUploaderLambda-Test` CloudWatch log group](https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#logsV2:log-groups/log-group/$252Faws$252Flambda$252FDocUploaderLambda-Test-UploadFunction-3D3w0QTh1l6H) to confirm the new version has been triggered and processed the file without errors.
+- Check the [`DocUploaderLambda-Test` CloudWatch log group](https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#logsV2:log-groups/log-group/$252Faws$252Flambda$252FDocUploaderLambda-Test-UploadFunction-A0zLSxC2sCV5) to confirm the new version has been triggered and processed the file without errors.
 
     ```bash
     open 'https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#logsV2:log-groups/log-group/$252Faws$252Flambda$252FDocUploaderLambda-Test-UploadFunction-3D3w0QTh1l6H'

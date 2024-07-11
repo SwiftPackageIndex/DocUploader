@@ -83,7 +83,10 @@ public struct DocUploader: LambdaHandler {
         logger.info("record: \(record)")
 
         try await run {
-            let outputPath = "/tmp"
+            // When Lambdas are run in quick succession they seem to be seeing the same /tmp file system and unzipping can fail with
+            //   lambda handler returned an error: Error Domain=NSCocoaErrorDomain Code=516 "A file with the same name already exists."
+            let outputPath = "/tmp/\(UUID())"
+            try Foundation.FileManager.default.createDirectory(at: URL(fileURLWithPath: outputPath), withIntermediateDirectories: true)
 
             do {
                 logger.info("Copying \(s3Key.url) to \(outputPath)...")
