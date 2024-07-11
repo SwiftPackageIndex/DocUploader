@@ -28,4 +28,4 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Run tests
-        run: docker run --rm -v "$PWD":/host -w /host swift:5.10.0-amazonlinux2 swift test
+        run: docker run -v "$PWD":/host -w /host swift:5.10.0-amazonlinux2 swift test
