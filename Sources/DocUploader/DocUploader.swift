@@ -83,7 +83,8 @@ public struct DocUploader: LambdaHandler {
         logger.info("record: \(record)")
 
         try await run {
-            let outputPath = "/tmp"
+            let outputPath = "/tmp/\(UUID())"
+            try Foundation.FileManager.default.createDirectory(at: URL(fileURLWithPath: outputPath), withIntermediateDirectories: true)
 
             do {
                 logger.info("Copying \(s3Key.url) to \(outputPath)...")
