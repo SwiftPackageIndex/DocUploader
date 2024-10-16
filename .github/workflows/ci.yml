@@ -23,9 +23,12 @@ on:
 
 jobs:
   tests:
+    strategy:
+      matrix:
+        swift: ["5.10", "6.0"]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Run tests
-        run: docker run -v "$PWD":/host -w /host swift:5.10.0-amazonlinux2 swift test
+        run: docker run -v "$PWD":/host -w /host swift:${{ matrix.swift }}-amazonlinux2 swift test
