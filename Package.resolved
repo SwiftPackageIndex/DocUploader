@@ -248,8 +248,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/vapor-community/Zip.git",
       "state" : {
-        "revision" : "f4161af4520aeccbee8d2b1f36b0067d158fd416",
-        "version" : "2.2.0"
+        "revision" : "567d51516b3bdbc823669a943d8b4f6bc6c6dafc",
+        "version" : "2.2.3"
       }
     }
   ],
