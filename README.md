@@ -44,7 +44,7 @@ Instead, use the `dev` environment to validate a new release as follows:
 - Run the tests
 
     ```
-    docker run --rm -v "$PWD":/host -w /host swift:5.10.0-amazonlinux2 swift test
+    docker run --rm -v "$PWD":/host -w /host swift:6.0.3-amazonlinux2 swift test
     ```
 
 - Deploy the new version to the "test" lambda
