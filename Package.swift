@@ -39,7 +39,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-crypto.git", from: "3.0.0"),
         .package(url: "https://github.com/swift-server/swift-aws-lambda-events.git", from: "0.1.0"),
         .package(url: "https://github.com/swift-server/swift-aws-lambda-runtime.git", from: "1.0.0-alpha.1"),
-        .package(url: "https://github.com/soto-project/soto-s3-file-transfer.git", from: "1.2.0"),
+        .package(url: "https://github.com/soto-project/soto-s3-file-transfer.git", from: "2.0.0"),
         .package(url: "https://github.com/vapor-community/Zip.git", from: "2.0.0"),
         .package(url: "https://github.com/pointfreeco/swift-dependencies.git", from: "1.0.0")
     ],

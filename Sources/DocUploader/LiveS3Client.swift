@@ -15,12 +15,13 @@
 import NIO
 import SotoS3
 import SotoS3FileTransfer
+import Synchronization
 
 
 struct LiveS3Client: S3Client {
     func deleteFile(client: AWSClient, logger: Logger, key: S3StoreKey) async throws {
         let s3 = S3(client: client, region: .useast2)
-        let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .singleton)
+        let s3FileTransfer = S3FileTransferManager(s3: s3)
 
         guard let file = S3File(key: key) else {
             throw Error(message: "Invalid key: \(key)")
@@ -30,7 +31,7 @@ struct LiveS3Client: S3Client {
 
     func loadFile(client: AWSClient, logger: Logger, from key: S3StoreKey, to path: String) async throws {
         let s3 = S3(client: client, region: .useast2)
-        let s3FileTransfer = S3FileTransferManager(s3: s3, threadPoolProvider: .singleton)
+        let s3FileTransfer = S3FileTransferManager(s3: s3)
 
         guard let file = S3File(key: key) else {
             throw Error(message: "Invalid key: \(key)")
@@ -44,16 +45,7 @@ struct LiveS3Client: S3Client {
                     timeout: .seconds(60),
                     options: .s3DisableChunkedUploads)
 
-        let threadPool = NIOThreadPool(numberOfThreads: 8)
-        defer { threadPool.shutdownGracefully { _ in } }
-        threadPool.start()
-
-        let s3FileTransfer = S3FileTransferManager(s3: s3,
-                                                   threadPoolProvider: .shared(threadPool),
-                                                   configuration: .init(maxConcurrentTasks: 60))
-        defer {
-            try? s3FileTransfer.syncShutdown()
-        }
+        let s3FileTransfer = S3FileTransferManager(s3: s3, configuration: .init(maxConcurrentTasks: 60))
 
         guard let s3Folder = S3Folder(url: key.url) else {
             throw Error(message: "Invalid key: \(key)")
