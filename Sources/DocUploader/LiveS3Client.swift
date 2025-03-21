@@ -50,11 +50,11 @@ struct LiveS3Client: S3Client {
             throw Error(message: "Invalid key: \(key)")
         }
 
-        var nextProgressTick = 0.1
+        let nextProgressTick = QueueIsolated(0.1)
         try await s3FileTransfer.sync(from: folder, to: s3Folder, delete: true) { progress in
-            if progress >= nextProgressTick {
+            if progress >= nextProgressTick.value {
                 logger.info("Syncing... [\(percent: progress)]")
-                nextProgressTick += 0.1
+                nextProgressTick.withValue { $0 += 0.1 }
             }
         }
     }
