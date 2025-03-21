@@ -48,16 +48,11 @@ public struct DocUploader: LambdaHandler {
         }
         self.httpClient = httpClient
 
-        let awsClient = AWSClient(httpClientProvider: .shared(httpClient))
+        let awsClient = AWSClient(httpClient: httpClient)
         context.terminator.register(name: "awsclient") { eventLoop in
             let promise = eventLoop.makePromise(of: Void.self)
-            awsClient.shutdown() { error in
-                switch error {
-                case .none:
-                    promise.succeed(())
-                case .some(let error):
-                    promise.fail(error)
-                }
+            promise.completeWithTask {
+                try await awsClient.shutdown()
             }
             return promise.futureResult
         }
