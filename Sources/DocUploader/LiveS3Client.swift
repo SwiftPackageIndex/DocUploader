@@ -15,7 +15,6 @@
 import NIO
 import SotoS3
 import SotoS3FileTransfer
-import Synchronization
 
 
 struct LiveS3Client: S3Client {
