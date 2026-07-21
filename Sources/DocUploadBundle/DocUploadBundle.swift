@@ -66,7 +66,8 @@ public struct DocUploadBundle {
     public let s3Folder: S3Folder
 
     var archiveName: String {
-        "\(env)-\(repository.owner)-\(repository.name)-\(reference.pathEncoded)-\(self.uuid().firstSegment).zip"
+        let prefix = !env.isEmpty ? env + "-" : ""
+        return "\(prefix)\(repository.owner)-\(repository.name)-\(reference.pathEncoded)-\(self.uuid().firstSegment).zip"
             .lowercased()
     }
 

@@ -133,4 +133,24 @@ final class DocUploadBundleTests: XCTestCase {
         }
     }
 
+    func test_archive_name_no_bucket() throws {
+        let cafe = UUID(uuidString: "cafecafe-cafe-cafe-cafe-cafecafecafe")!
+        let bundle = withDependencies {
+            $0.uuid = .constant(cafe)
+        } operation: {
+            DocUploadBundle(sourcePath: "/foo/bar/owner/name/branch",
+                            bucket: "",
+                            repository: .init(owner: "Owner", name: "Name"),
+                            reference: "Branch",
+                            apiBaseURL: "baseURL",
+                            apiToken: "token",
+                            buildId: cafe,
+                            docArchives: [.init(name: "foo", title: "Foo")],
+                            fileCount: 123,
+                            linkablePathsCount: 234,
+                            mbSize: 456)
+        }
+        XCTAssertEqual(bundle.archiveName, "owner-name-branch-cafecafe.zip")
+    }
+
 }
